@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/api/client";
+import { api, API_BASE_URL } from "@/api/client";
 import type { Analysis, Document, RiskLevel } from "@/types";
 import { ScoreGauge } from "@/components/shared/ScoreGauge";
 import { RiskBadge } from "@/components/shared/RiskBadge";
@@ -81,7 +81,7 @@ export function AnalysisResult() {
   }));
 
   async function downloadPdf() {
-    const res = await fetch(`/api/v1/analyses/${id}/report`, {
+    const res = await fetch(`${API_BASE_URL}/analyses/${id}/report`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     const blob = await res.blob();

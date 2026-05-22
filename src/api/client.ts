@@ -1,7 +1,11 @@
 import axios from "axios";
 import { useAuth } from "@/store/auth";
 
-export const api = axios.create({ baseURL: "/api/v1" });
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "/api/v1").replace(/\/+$/, "");
+
+export const API_BASE_URL = API_BASE;
+
+export const api = axios.create({ baseURL: API_BASE });
 
 api.interceptors.request.use((config) => {
   const token = useAuth.getState().accessToken;
@@ -15,7 +19,7 @@ async function doRefresh(): Promise<string> {
   const { refreshToken, setTokens, logout } = useAuth.getState();
   if (!refreshToken) throw new Error("no refresh");
   try {
-    const { data } = await axios.post("/api/v1/auth/refresh", { refresh_token: refreshToken });
+    const { data } = await axios.post(`${API_BASE}/auth/refresh`, { refresh_token: refreshToken });
     setTokens(data.access_token, data.refresh_token);
     return data.access_token;
   } catch (e) {

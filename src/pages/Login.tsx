@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "@/store/auth";
+import { API_BASE_URL } from "@/api/client";
 import { ShieldCheck } from "lucide-react";
 
 export function Login() {
@@ -22,9 +23,9 @@ export function Login() {
       const form = new URLSearchParams();
       form.append("username", email);
       form.append("password", password);
-      const { data } = await axios.post("/api/v1/auth/login", form);
+      const { data } = await axios.post(`${API_BASE_URL}/auth/login`, form);
       setTokens(data.access_token, data.refresh_token);
-      const me = await axios.get("/api/v1/auth/me", {
+      const me = await axios.get(`${API_BASE_URL}/auth/me`, {
         headers: { Authorization: `Bearer ${data.access_token}` },
       });
       setUser(me.data);

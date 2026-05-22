@@ -8,9 +8,21 @@ O'zbekiston Madaniyat vazirligi uchun ssenariy tahlil tizimi frontend qismi.
 
 ```bash
 npm install
-npm run dev     # http://localhost:5173 ; /api → backend (vite proxy: 8001)
-npm run build   # production build → dist/
+cp .env.example .env.local   # ixtiyoriy
+npm run dev                  # http://localhost:5173 ; /api → backend (vite proxy: 8001)
+npm run build                # production build → dist/
 ```
+
+## Env (Vite)
+
+`.env.local` (yoki `.env.production`) — `.env.example` ko'ring.
+
+| Variable | Tavsif | Default |
+|----------|--------|---------|
+| `VITE_API_BASE_URL` | API base URL. Bo'sh — `/api/v1` (Vite/Nginx proxy). To'liq URL: `https://api.senariy.uz/api/v1` | `/api/v1` |
+| `VITE_DEV_PROXY_TARGET` | Dev rejimida Vite proxy backendni qaerga jo'natadi | `http://localhost:8001` |
+
+Frontend va backend bir domenda (nginx orqasida) bo'lsa, **`VITE_API_BASE_URL` ni o'rnatish shart emas**.
 
 ## PM2 bilan ishga tushirish
 
