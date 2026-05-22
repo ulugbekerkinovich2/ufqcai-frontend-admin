@@ -37,7 +37,7 @@ export function Users() {
       <header className="flex items-end justify-between">
         <div>
           <p className="text-[12.5px] uppercase tracking-[0.14em] text-ink-muted mb-2">Boshqaruv</p>
-          <h1 className="font-serif text-[34px] leading-tight">Foydalanuvchilar</h1>
+          <h1 className="font-serif text-[26px] leading-tight">Foydalanuvchilar</h1>
           <p className="text-[13.5px] text-ink-muted mt-2">Tizimdan faqat tasdiqlangan ekspertlar foydalanadi.</p>
         </div>
         <button onClick={() => setOpen(true)} className="btn-primary">

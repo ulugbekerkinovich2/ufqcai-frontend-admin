@@ -43,7 +43,7 @@ export function Laws() {
     <div className="space-y-7 animate-fade-in">
       <header>
         <p className="text-[12.5px] uppercase tracking-[0.14em] text-ink-muted mb-2">Bilim bazasi</p>
-        <h1 className="font-serif text-[34px] leading-tight">Qonunlar bazasi</h1>
+        <h1 className="font-serif text-[26px] leading-tight">Qonunlar bazasi</h1>
         <p className="text-[13.5px] text-ink-muted mt-2 max-w-2xl">
           Yuklangan qonun matnlari avtomatik <span className="text-ink">parchalanadi</span> va vektor bazaga indekslanadi.
           Tahlil paytida AI ssenariyga semantik mos qonun bo'limlarini topib, huquqiy moslikni baholaydi.

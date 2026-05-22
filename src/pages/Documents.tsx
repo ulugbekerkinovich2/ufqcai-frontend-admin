@@ -51,7 +51,7 @@ export function Documents() {
       <header className="flex items-end justify-between">
         <div>
           <p className="text-[12.5px] uppercase tracking-[0.14em] text-ink-muted mb-2">Ekspertiza</p>
-          <h1 className="font-serif text-[34px] leading-tight">Ssenariylar</h1>
+          <h1 className="font-serif text-[26px] leading-tight">Ssenariylar</h1>
         </div>
         <div className="text-[13px] text-ink-muted">Jami {items.length} ta</div>
       </header>

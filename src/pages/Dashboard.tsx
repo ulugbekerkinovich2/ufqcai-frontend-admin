@@ -46,7 +46,7 @@ export function Dashboard() {
       <header className="flex items-end justify-between">
         <div>
           <p className="text-[12.5px] uppercase tracking-[0.14em] text-ink-muted mb-2">Umumiy ko'rinish</p>
-          <h1 className="font-serif text-[34px] leading-tight">Boshqaruv paneli</h1>
+          <h1 className="font-serif text-[26px] leading-tight">Boshqaruv paneli</h1>
         </div>
         <Link to="/documents" className="btn-secondary">
           Yangi ssenariy <ArrowUpRight size={15} />

@@ -37,7 +37,7 @@ export function ChangePassword() {
       </button>
       <header className="mb-7">
         <p className="text-[12.5px] uppercase tracking-[0.14em] text-ink-muted mb-2">Xavfsizlik</p>
-        <h1 className="font-serif text-[32px] leading-tight">Parolni o'zgartirish</h1>
+        <h1 className="font-serif text-[24px] leading-tight">Parolni o'zgartirish</h1>
         <p className="text-[13.5px] text-ink-muted mt-2">Davriy yangilanish maxfiylik standartlariga muvofiq tavsiya etiladi.</p>
       </header>
 

@@ -102,7 +102,7 @@ export function AnalysisResult() {
       <header className="flex items-start justify-between gap-6">
         <div className="min-w-0">
           <p className="text-[12.5px] uppercase tracking-[0.14em] text-ink-muted mb-2">Tahlil natijasi</p>
-          <h1 className="font-serif text-[32px] leading-tight text-balance">{docQ.data?.title}</h1>
+          <h1 className="font-serif text-[24px] leading-tight text-balance">{docQ.data?.title}</h1>
           <div className="text-[12px] text-ink-subtle mt-2 tabular-nums">
             Model: {a.model_used} · Tokenlar: {a.tokens_used?.toLocaleString("uz-UZ")}
           </div>
