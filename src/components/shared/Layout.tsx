@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/store/auth";
 import {
-  LogOut, FileText, ListChecks, BookOpen, Users, LayoutDashboard, ScrollText, KeyRound,
+  LogOut, FileText, ListChecks, BookOpen, Users, LayoutDashboard, ScrollText, KeyRound, DollarSign,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,7 @@ const items = [
   { to: "/criteria", label: "Kriteriyalar", icon: ListChecks },
   { to: "/laws", label: "Qonunlar bazasi", icon: BookOpen },
   { to: "/users", label: "Foydalanuvchilar", icon: Users, superOnly: true },
+  { to: "/usage", label: "OpenAI sarflar", icon: DollarSign, superOnly: true },
   { to: "/audit", label: "Audit jurnali", icon: ScrollText, superOnly: true },
 ];
 
