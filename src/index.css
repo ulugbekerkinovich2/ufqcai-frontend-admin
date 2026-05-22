@@ -1,6 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root { height: 100%; }
-body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; color: #0f172a; background: #f8fafc; }
+@layer base {
+  html, body, #root { height: 100%; }
+  body {
+    @apply font-sans text-ink bg-surface antialiased;
+    font-feature-settings: "ss01", "cv11";
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, h4 { @apply font-serif tracking-tight text-ink; font-weight: 500; }
+  ::selection { background-color: rgba(15, 118, 110, 0.18); color: #0E6660; }
+
+  /* Scrollbar (yumshoq) */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #E5E7E2; border-radius: 8px; }
+  ::-webkit-scrollbar-thumb:hover { background: #D1D5DB; }
+}
+
+@layer components {
+  .card {
+    @apply bg-surface-raised rounded-2xl shadow-card transition-shadow;
+  }
+  .card-hover {
+    @apply hover:shadow-raised;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 h-10 rounded-xl text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:shadow-focus;
+  }
+  .btn-primary {
+    @apply btn bg-accent text-white hover:bg-accent-700 active:bg-accent-800;
+  }
+  .btn-secondary {
+    @apply btn bg-surface-sunken text-ink hover:bg-ink/5;
+  }
+  .btn-ghost {
+    @apply btn text-ink-muted hover:text-ink hover:bg-ink/5;
+  }
+  .btn-danger {
+    @apply btn bg-risk-high-bg text-risk-high-fg hover:bg-risk-high-bg/80;
+  }
+  .input {
+    @apply h-11 w-full rounded-xl bg-surface-raised px-3.5 text-sm text-ink placeholder:text-ink-subtle border border-transparent ring-1 ring-ink/10 focus:ring-accent/40 focus:border-accent/40 focus:outline-none transition;
+  }
+  .textarea {
+    @apply input h-auto py-3 leading-relaxed;
+  }
+  .label {
+    @apply block text-xs font-medium text-ink-muted mb-1.5 uppercase tracking-wide;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  .table-row {
+    @apply h-14 transition-colors;
+  }
+  .surface-divider {
+    @apply border-t border-ink/[0.06];
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .text-pretty { text-wrap: pretty; }
+}

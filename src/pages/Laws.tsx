@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import type { Law } from "@/types";
-import { Trash2, Upload } from "lucide-react";
+import { Trash2, Upload, BookOpen, CheckCircle2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
 export function Laws() {
@@ -40,46 +40,89 @@ export function Laws() {
   });
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Qonunlar bazasi</h1>
+    <div className="space-y-7 animate-fade-in">
+      <header>
+        <p className="text-[12.5px] uppercase tracking-[0.14em] text-ink-muted mb-2">Bilim bazasi</p>
+        <h1 className="font-serif text-[34px] leading-tight">Qonunlar bazasi</h1>
+        <p className="text-[13.5px] text-ink-muted mt-2 max-w-2xl">
+          Yuklangan qonun matnlari avtomatik <span className="text-ink">parchalanadi</span> va vektor bazaga indekslanadi.
+          Tahlil paytida AI ssenariyga semantik mos qonun bo'limlarini topib, huquqiy moslikni baholaydi.
+        </p>
+      </header>
 
-      <div className="bg-white p-4 rounded border">
-        <h2 className="font-semibold mb-3">Yangi qonun yuklash</h2>
-        <form onSubmit={(e) => { e.preventDefault(); if (file && title) upload.mutate(); }} className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-          <input className="border rounded px-3 py-2" placeholder="Qonun nomi *" required value={title} onChange={(e) => setTitle(e.target.value)} />
-          <input className="border rounded px-3 py-2" placeholder="Hujjat raqami" value={docNumber} onChange={(e) => setDocNumber(e.target.value)} />
-          <input className="border rounded px-3 py-2" placeholder="Kategoriya" value={category} onChange={(e) => setCategory(e.target.value)} />
-          <input type="file" accept=".doc,.docx,.pdf,.txt" onChange={(e) => setFile(e.target.files?.[0] || null)} className="md:col-span-2" />
-          <button disabled={!file || !title || upload.isPending} className="flex items-center justify-center gap-2 bg-brand text-white px-4 py-2 rounded hover:bg-brand-dark disabled:opacity-60">
-            <Upload size={16} /> Yuklash & indekslash
-          </button>
+      <div className="card p-7">
+        <h2 className="font-serif text-lg mb-5 flex items-center gap-2.5">
+          <span className="h-8 w-8 rounded-xl bg-accent-50 text-accent grid place-items-center">
+            <Upload size={15} strokeWidth={1.75} />
+          </span>
+          Yangi qonun yuklash
+        </h2>
+        <form onSubmit={(e) => { e.preventDefault(); if (file && title) upload.mutate(); }} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="md:col-span-2">
+            <label className="label">Qonun nomi *</label>
+            <input className="input" required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Masalan: Kinematografiya to'g'risida" />
+          </div>
+          <div>
+            <label className="label">Hujjat raqami</label>
+            <input className="input" value={docNumber} onChange={(e) => setDocNumber(e.target.value)} placeholder="ORQ-NN" />
+          </div>
+          <div>
+            <label className="label">Kategoriya</label>
+            <input className="input" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Madaniyat / Migratsiya / ..." />
+          </div>
+          <div className="md:col-span-2">
+            <label className="label">Fayl</label>
+            <label className="flex items-center gap-3 h-11 px-3.5 rounded-xl bg-surface-sunken cursor-pointer hover:bg-ink/5 transition">
+              <Upload size={15} className="text-ink-muted" />
+              <span className="text-sm text-ink-muted truncate">{file ? file.name : ".doc, .docx, .pdf, .txt"}</span>
+              <input type="file" accept=".doc,.docx,.pdf,.txt" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+            </label>
+          </div>
+          <div className="md:col-span-3 flex items-center justify-between gap-4">
+            {err ? (
+              <div className="text-sm text-risk-high-fg flex-1">{err}</div>
+            ) : <div className="flex-1" />}
+            <button disabled={!file || !title || upload.isPending} className="btn-primary">
+              <Upload size={15} /> {upload.isPending ? "Indekslanmoqda..." : "Yuklash va indekslash"}
+            </button>
+          </div>
         </form>
-        {err && <div className="text-sm text-red-600 mt-2">{err}</div>}
       </div>
 
-      <div className="bg-white rounded border">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left">
-            <tr><th className="p-3">Nomi</th><th>Raqam</th><th>Kategoriya</th><th>Faol</th><th>Sana</th><th></th></tr>
-          </thead>
-          <tbody>
-            {items.map((l) => (
-              <tr key={l.id} className="border-t">
-                <td className="p-3">{l.title}</td>
-                <td>{l.doc_number}</td>
-                <td>{l.category}</td>
-                <td>{l.is_active ? "Ha" : "Yo'q"}</td>
-                <td>{formatDate(l.created_at)}</td>
-                <td>
-                  <button onClick={() => confirm("O'chirilsinmi?") && del.mutate(l.id)} className="text-red-600 p-1 hover:bg-red-50 rounded">
-                    <Trash2 size={14} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {items.length === 0 && <tr><td colSpan={6} className="p-4 text-gray-500">Bo'sh</td></tr>}
-          </tbody>
-        </table>
+      <div className="card overflow-hidden">
+        <div className="px-6 py-5 flex items-center justify-between">
+          <h2 className="font-serif text-lg">Indekslangan qonunlar</h2>
+          <span className="text-[12px] text-ink-muted">{items.length} ta</span>
+        </div>
+        <div className="surface-divider">
+          {items.map((l) => (
+            <div key={l.id} className="px-6 py-4 border-t border-ink/[0.05] flex items-center gap-4 hover:bg-surface-sunken/40 transition">
+              <div className="h-10 w-10 rounded-xl bg-accent-50 text-accent grid place-items-center shrink-0">
+                <BookOpen size={16} strokeWidth={1.75} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[14.5px] font-medium text-ink truncate">{l.title}</div>
+                <div className="text-[12px] text-ink-muted mt-0.5 flex items-center gap-3">
+                  {l.doc_number && <span className="tabular-nums">№ {l.doc_number}</span>}
+                  {l.category && <span>· {l.category}</span>}
+                  <span>· {formatDate(l.created_at)}</span>
+                </div>
+              </div>
+              {l.is_active && (
+                <span className="chip bg-accent-50 text-accent-700">
+                  <CheckCircle2 size={12} /> Faol
+                </span>
+              )}
+              <button
+                onClick={() => confirm("Bazadan olib tashlansinmi?") && del.mutate(l.id)}
+                className="btn-ghost h-9 w-9 p-0 hover:text-risk-high-fg"
+              ><Trash2 size={14} strokeWidth={1.75} /></button>
+            </div>
+          ))}
+          {items.length === 0 && (
+            <div className="px-6 py-12 text-center text-ink-muted text-sm">Hozircha qonun yuklanmagan</div>
+          )}
+        </div>
       </div>
     </div>
   );

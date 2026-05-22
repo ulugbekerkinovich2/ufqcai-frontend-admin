@@ -1,17 +1,24 @@
 import { cn } from "@/lib/utils";
 import type { RiskLevel } from "@/types";
 
-const MAP: Record<string, { label: string; cls: string }> = {
-  None: { label: "Yo'q", cls: "bg-gray-100 text-gray-700 border-gray-300" },
-  Low: { label: "Past", cls: "bg-yellow-50 text-yellow-800 border-yellow-300" },
-  Medium: { label: "O'rta", cls: "bg-orange-50 text-orange-800 border-orange-300" },
-  High: { label: "Yuqori", cls: "bg-red-50 text-red-700 border-red-300" },
+const MAP: Record<string, { label: string; cls: string; dot: string }> = {
+  None: { label: "Yo'q", cls: "bg-risk-none-bg text-risk-none-fg", dot: "bg-risk-none-dot" },
+  Low: { label: "Past", cls: "bg-risk-low-bg text-risk-low-fg", dot: "bg-risk-low-dot" },
+  Medium: { label: "O'rta", cls: "bg-risk-medium-bg text-risk-medium-fg", dot: "bg-risk-medium-dot" },
+  High: { label: "Yuqori", cls: "bg-risk-high-bg text-risk-high-fg", dot: "bg-risk-high-dot" },
 };
 
-export function RiskBadge({ level }: { level?: RiskLevel | string }) {
+export function RiskBadge({ level, size = "md" }: { level?: RiskLevel | string; size?: "sm" | "md" }) {
   const info = MAP[level || "None"] || MAP.None;
   return (
-    <span className={cn("inline-flex items-center px-2 py-0.5 rounded border text-xs font-medium", info.cls)}>
+    <span
+      className={cn(
+        "chip",
+        info.cls,
+        size === "sm" && "text-[11px] py-0",
+      )}
+    >
+      <span className={cn("h-1.5 w-1.5 rounded-full", info.dot)} />
       {info.label}
     </span>
   );
