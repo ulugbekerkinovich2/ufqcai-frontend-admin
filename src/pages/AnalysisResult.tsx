@@ -38,6 +38,7 @@ export function AnalysisResult() {
   const [showLow, setShowLow] = useState(false);
   const [showHiddenRecs, setShowHiddenRecs] = useState(false);
   const textRef = useRef<HTMLDivElement | null>(null);
+  const criteriaListRef = useRef<HTMLUListElement | null>(null);
 
   const aQ = useQuery({
     queryKey: ["analysis", id],
@@ -121,11 +122,11 @@ export function AnalysisResult() {
     [filteredResults],
   );
 
-  // Scroll to first active segment
+  // After text section scrolls into view, highlight the first segment
   useEffect(() => {
     if (!activeCriterionSegIds.length || !textRef.current) return;
     const el = textRef.current.querySelector<HTMLElement>(`[data-seg-id="${activeCriterionSegIds[0]}"]`);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "center" }), 400);
   }, [activeCriterionSegIds]);
 
   if (!aQ.data) return <div className="text-ink-muted">{t("common.loading")}</div>;
@@ -183,12 +184,26 @@ export function AnalysisResult() {
     URL.revokeObjectURL(url);
   }
 
-  function jumpToCriterion(criterionId?: string | null, criterionName?: string | null) {
+  // Score bar click → scroll to criterion detail card
+  function scrollToCriterionDetail(resultId: string) {
+    const el = criteriaListRef.current?.querySelector<HTMLElement>(`[data-result-id="${resultId}"]`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  // "Find in text" chip → highlight ALL criterion segments + scroll to text
+  function jumpAllToText(criterionId?: string | null, criterionName?: string | null) {
     const segs = flagsForCriterion(criterionId, criterionName);
     if (segs.length === 0) return;
     const sorted = [...segs].sort((a, b) => (RISK_RANK[b.risk_level || "None"] || 0) - (RISK_RANK[a.risk_level || "None"] || 0));
     setActiveCriterionSegIds(sorted.map((s) => s.id));
     setActiveSegment(sorted[0]);
+    textRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // Evidence quote click → highlight single segment + scroll to text
+  function jumpSegmentToText(seg: FlaggedSegment) {
+    setActiveCriterionSegIds([seg.id]);
+    setActiveSegment(seg);
     textRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -265,9 +280,9 @@ export function AnalysisResult() {
                 return (
                   <button
                     key={r.id}
-                    onClick={() => jumpToCriterion(r.criterion_id, r.criterion_name)}
+                    onClick={() => scrollToCriterionDetail(r.id)}
                     className="w-full text-left group hover:bg-surface-sunken/40 rounded-lg px-2 py-1.5 -mx-2 transition"
-                    title={hasFlags ? "Matn ichidan topish" : ""}
+                    title={hasFlags ? "Tafsilotga o'tish" : ""}
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-[13px] text-ink truncate flex-1 group-hover:text-accent transition">
@@ -402,19 +417,19 @@ export function AnalysisResult() {
           </div>
         )}
 
-        <ul className="divide-y divide-ink/[0.05]">
+        <ul ref={criteriaListRef} className="divide-y divide-ink/[0.05]">
           {filteredResults.map((r) => {
             const segs = flagsForCriterion(r.criterion_id, r.criterion_name);
             const hasFlags = segs.length > 0;
             const recHidden = isNoChangeRec(r.recommendation) && !showHiddenRecs;
             return (
-              <li key={r.id} className="px-6 py-5 hover:bg-surface-sunken/40 transition">
+              <li key={r.id} data-result-id={r.id} className="px-6 py-5 hover:bg-surface-sunken/40 transition scroll-mt-6">
                 <div className="flex flex-wrap items-baseline gap-3 mb-2">
                   <h4 className="font-serif text-[17px]">{r.criterion_name}</h4>
                   <RiskBadge level={r.risk_level} />
                   {hasFlags && (
                     <button
-                      onClick={() => jumpToCriterion(r.criterion_id, r.criterion_name)}
+                      onClick={() => jumpAllToText(r.criterion_id, r.criterion_name)}
                       className="chip bg-accent-50 text-accent-700 text-[11px] hover:bg-accent-100 transition"
                     >
                       <Search size={10} /> {t("analysis.find_in_text")} ({segs.length})
@@ -442,7 +457,7 @@ export function AnalysisResult() {
                       return (
                         <button
                           key={seg.id}
-                          onClick={() => setActiveSegment(seg)}
+                          onClick={() => jumpSegmentToText(seg)}
                           className="block w-full text-left bg-surface-sunken/40 hover:bg-surface-sunken rounded-xl px-4 py-3 transition group"
                         >
                           <div className="flex items-start gap-2.5">
