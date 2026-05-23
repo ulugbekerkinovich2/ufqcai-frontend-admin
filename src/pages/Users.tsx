@@ -2,12 +2,16 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import { formatDate } from "@/lib/utils";
-import { Plus, X, ShieldCheck, User as UserIcon } from "lucide-react";
+import { Plus, X, ShieldCheck, User as UserIcon, Pencil, Check } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 interface User {
   id: string; full_name: string; email: string; role: string; is_active: boolean;
-  created_at: string; last_login_at?: string;
+  created_at: string; last_login_at?: string; daily_token_limit?: number;
+}
+
+function formatNumber(n: number): string {
+  return n.toLocaleString();
 }
 
 export function Users() {
@@ -15,6 +19,8 @@ export function Users() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ full_name: "", email: "", password: "", role: "admin" });
+  const [editLimitId, setEditLimitId] = useState<string | null>(null);
+  const [limitVal, setLimitVal] = useState<string>("");
 
   const { data: items = [] } = useQuery({
     queryKey: ["users"],
@@ -32,6 +38,16 @@ export function Users() {
   const toggle = useMutation({
     mutationFn: async (u: User) => (await api.patch(`/users/${u.id}`, { is_active: !u.is_active })).data,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
+  });
+
+  const updateLimit = useMutation({
+    mutationFn: async ({ id, value }: { id: string; value: number }) =>
+      (await api.patch(`/users/${id}`, { daily_token_limit: value })).data,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["users"] });
+      setEditLimitId(null);
+      setLimitVal("");
+    },
   });
 
   return (
@@ -56,6 +72,7 @@ export function Users() {
               <th className="text-left font-medium py-3">{t("common.status")}</th>
               <th className="text-left font-medium py-3">{t("users.last_login")}</th>
               <th className="text-left font-medium py-3">{t("users.created")}</th>
+              <th className="text-left font-medium py-3">{t("users.token_limit")}</th>
               <th className="py-3 pr-6"></th>
             </tr>
           </thead>
@@ -88,6 +105,50 @@ export function Users() {
                   </td>
                   <td className="text-[13px] text-ink-muted">{u.last_login_at ? formatDate(u.last_login_at) : "—"}</td>
                   <td className="text-[13px] text-ink-muted">{formatDate(u.created_at)}</td>
+                  <td className="text-[13px]">
+                    {editLimitId === u.id ? (
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          min={0}
+                          className="input h-7 w-28 text-[12px] px-2"
+                          value={limitVal}
+                          onChange={(e) => setLimitVal(e.target.value)}
+                          autoFocus
+                        />
+                        <button
+                          className="btn-ghost h-7 w-7 p-0 text-accent"
+                          onClick={() => updateLimit.mutate({ id: u.id, value: parseInt(limitVal || "0", 10) })}
+                          disabled={updateLimit.isPending}
+                        >
+                          <Check size={13} />
+                        </button>
+                        <button
+                          className="btn-ghost h-7 w-7 p-0"
+                          onClick={() => { setEditLimitId(null); setLimitVal(""); }}
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-ink-muted">
+                          {u.daily_token_limit && u.daily_token_limit > 0
+                            ? formatNumber(u.daily_token_limit)
+                            : t("users.global_limit")}
+                        </span>
+                        <button
+                          className="btn-ghost h-6 w-6 p-0 opacity-40 hover:opacity-100"
+                          onClick={() => {
+                            setEditLimitId(u.id);
+                            setLimitVal(String(u.daily_token_limit ?? 0));
+                          }}
+                        >
+                          <Pencil size={11} />
+                        </button>
+                      </div>
+                    )}
+                  </td>
                   <td className="pr-6 text-right">
                     <button onClick={() => toggle.mutate(u)} className="btn-ghost h-8 px-2.5 text-[12.5px]">
                       {u.is_active ? t("users.deactivate") : t("users.activate")}
@@ -97,10 +158,31 @@ export function Users() {
               );
             })}
             {items.length === 0 && (
-              <tr><td colSpan={6} className="px-6 py-10 text-center text-ink-muted text-sm">{t("common.empty")}</td></tr>
+              <tr><td colSpan={7} className="px-6 py-10 text-center text-ink-muted text-sm">{t("common.empty")}</td></tr>
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Permissions section */}
+      <div className="card p-6 space-y-4">
+        <h2 className="font-serif text-[18px]">{t("users.permissions")}</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="rounded-xl border border-ink/[0.07] bg-surface-sunken/40 p-5 space-y-2">
+            <div className="flex items-center gap-2">
+              <UserIcon size={15} className="text-ink-muted" />
+              <span className="text-[13.5px] font-semibold text-ink">{t("users.role_admin")}</span>
+            </div>
+            <p className="text-[12.5px] text-ink-muted leading-relaxed">{t("users.perm_admin_can")}</p>
+          </div>
+          <div className="rounded-xl border border-accent/20 bg-accent/[0.04] p-5 space-y-2">
+            <div className="flex items-center gap-2">
+              <ShieldCheck size={15} className="text-accent" />
+              <span className="text-[13.5px] font-semibold text-ink">{t("users.role_super")}</span>
+            </div>
+            <p className="text-[12.5px] text-ink-muted leading-relaxed">{t("users.perm_super_can")}</p>
+          </div>
+        </div>
       </div>
 
       {open && (
