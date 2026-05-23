@@ -7,7 +7,7 @@ import type { Document } from "@/types";
 import { Link } from "react-router-dom";
 import { RiskBadge } from "@/components/shared/RiskBadge";
 import { formatDate } from "@/lib/utils";
-import { ArrowUpRight, FileText, ShieldCheck, Activity, Sparkles } from "lucide-react";
+import { ArrowUpRight, FileText, ShieldCheck, Activity, Film } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 const RISK_COLORS = ["#9CA3AF", "#D97706", "#EA580C", "#DC2626"];
@@ -26,6 +26,7 @@ export function Dashboard() {
       analyses_completed: number;
       avg_score: number;
       by_risk: { risk: string; count: number }[];
+      top_genres: { genre: string; count: number }[];
     }>("/analyses-stats")).data,
   });
 
@@ -49,9 +50,10 @@ export function Dashboard() {
   const stats = [
     { label: t("dashboard.total_scenarios"), value: s?.total_documents ?? items.length, icon: FileText },
     { label: t("dashboard.analyzing"), value: s?.analyses_in_progress ?? 0, icon: Activity },
-    { label: t("dashboard.avg_score"), value: s?.avg_score ?? 0, icon: Sparkles },
     { label: t("dashboard.completed"), value: s?.analyses_completed ?? 0, icon: ShieldCheck },
   ];
+
+  const topGenres = s?.top_genres || [];
 
   return (
     <div className="space-y-7 animate-fade-in">
@@ -77,6 +79,28 @@ export function Dashboard() {
             <div className="font-serif text-[34px] leading-none tabular-nums">{s.value}</div>
           </div>
         ))}
+
+        {/* Genre card */}
+        <div className="card p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-[12.5px] text-ink-muted">{t("analysis.genre")}</div>
+            <div className="h-8 w-8 rounded-xl bg-accent-50 text-accent grid place-items-center">
+              <Film size={15} strokeWidth={1.75} />
+            </div>
+          </div>
+          {topGenres.length > 0 ? (
+            <div className="space-y-2">
+              {topGenres.slice(0, 4).map((g) => (
+                <div key={g.genre} className="flex items-center gap-2">
+                  <span className="text-[13px] text-ink truncate flex-1">{g.genre}</span>
+                  <span className="text-[13px] font-mono tabular-nums text-ink-muted shrink-0">{g.count}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-[12.5px] text-ink-subtle mt-1">{t("analysis.genre_empty")}</div>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
