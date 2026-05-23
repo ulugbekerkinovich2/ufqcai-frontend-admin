@@ -37,6 +37,7 @@ export interface Law {
 export interface FlaggedSegment {
   id: string;
   criterion_id?: string;
+  criterion_name?: string;
   quote: string;
   char_start?: number;
   char_end?: number;

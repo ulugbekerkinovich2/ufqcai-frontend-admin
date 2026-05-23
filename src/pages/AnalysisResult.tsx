@@ -63,25 +63,34 @@ export function AnalysisResult() {
   const filteredResults = useMemo(() => {
     let arr = [...results];
     if (filter === "high") arr = arr.filter((r) => r.risk_level === "High");
-    if (filter === "flagged") arr = arr.filter((r) =>
-      flagged.some((f) => f.criterion_id && f.criterion_id === r.criterion_id) ||
-      flagged.some((f) => f.criterion_id == null && r.criterion_name && f.explanation?.includes(r.criterion_name || ""))
-    );
+    if (filter === "flagged") arr = arr.filter((r) => flagsForCriterion(r.criterion_id, r.criterion_name).length > 0);
     if (sort === "score") arr.sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
     if (sort === "risk") arr.sort((a, b) => (RISK_RANK[b.risk_level] - RISK_RANK[a.risk_level]) || (Number(b.score || 0) - Number(a.score || 0)));
     return arr;
   }, [results, flagged, filter, sort]);
 
-  // criterion_id (yoki criterion_name) → flagged segments
+  // Mezon → flagged segments (criterion_id yoki normalize qilingan name bo'yicha)
+  const normalizeKey = (s?: string | null) =>
+    (s || "").replace(/^\s*\d+\s*[.)]\s*/, "").trim().toLowerCase();
   const flagsByCriterion = useMemo(() => {
-    const map: Record<string, FlaggedSegment[]> = {};
+    const byId: Record<string, FlaggedSegment[]> = {};
+    const byName: Record<string, FlaggedSegment[]> = {};
     for (const f of flagged) {
-      const key = f.criterion_id || "";
-      if (!map[key]) map[key] = [];
-      map[key].push(f);
+      if (f.criterion_id) {
+        (byId[f.criterion_id] ??= []).push(f);
+      }
+      const nk = normalizeKey(f.criterion_name);
+      if (nk) (byName[nk] ??= []).push(f);
     }
-    return map;
+    return { byId, byName };
   }, [flagged]);
+
+  function flagsForCriterion(cid?: string | null, cname?: string | null): FlaggedSegment[] {
+    if (cid && flagsByCriterion.byId[cid]) return flagsByCriterion.byId[cid];
+    const nk = normalizeKey(cname);
+    if (nk && flagsByCriterion.byName[nk]) return flagsByCriterion.byName[nk];
+    return [];
+  }
 
   // ScrollIntoView segment'ga
   useEffect(() => {
@@ -146,22 +155,11 @@ export function AnalysisResult() {
   }
 
   function jumpToCriterion(criterionId?: string | null, criterionName?: string | null) {
-    let segs = criterionId ? (flagsByCriterion[criterionId] || []) : [];
-    if (segs.length === 0 && criterionName) {
-      // criterion_id null bo'lsa, criterion_name bo'yicha qidirish
-      segs = flagged.filter((f) =>
-        f.explanation?.toLowerCase().includes((criterionName || "").toLowerCase()) ||
-        false
-      );
-    }
-    if (segs.length === 0) {
-      // Hech narsa topilmasa, eng yuqori riskli birinchisini olamiz
-      segs = [...flagged].sort((a, b) =>
-        (RISK_RANK[b.risk_level || "None"] || 0) - (RISK_RANK[a.risk_level || "None"] || 0)
-      );
-    }
+    const segs = flagsForCriterion(criterionId, criterionName);
     if (segs.length > 0) {
-      setActiveSegment(segs[0]);
+      // Eng yuqori riskli birinchi
+      const best = [...segs].sort((a, b) => (RISK_RANK[b.risk_level || "None"] || 0) - (RISK_RANK[a.risk_level || "None"] || 0))[0];
+      setActiveSegment(best);
     }
   }
 
@@ -220,7 +218,7 @@ export function AnalysisResult() {
                 const sc = Number(r.score || 0);
                 const pct = Math.max(2, (sc / scoreMax) * 100);
                 const color = RISK_COLOR[r.risk_level] || RISK_COLOR.None;
-                const hasFlags = (flagsByCriterion[r.criterion_id || ""] || []).length > 0;
+                const hasFlags = flagsForCriterion(r.criterion_id, r.criterion_name).length > 0;
                 return (
                   <button
                     key={r.id}
@@ -329,7 +327,7 @@ export function AnalysisResult() {
         </div>
         <ul className="surface-divider divide-y divide-ink/[0.05]">
           {filteredResults.map((r) => {
-            const hasFlags = (flagsByCriterion[r.criterion_id || ""] || []).length > 0;
+            const hasFlags = flagsForCriterion(r.criterion_id, r.criterion_name).length > 0;
             return (
               <li
                 key={r.id}
