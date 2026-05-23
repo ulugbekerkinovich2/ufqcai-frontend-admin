@@ -150,6 +150,16 @@ export function AnalysisResult() {
 
   const genres = a.genre || [];
 
+  function scoreVerdict(pct: number): string {
+    if (pct <= 15) return t("analysis.verdict_0");
+    if (pct <= 30) return t("analysis.verdict_1");
+    if (pct <= 45) return t("analysis.verdict_2");
+    if (pct <= 58) return t("analysis.verdict_3");
+    if (pct <= 70) return t("analysis.verdict_4");
+    if (pct <= 85) return t("analysis.verdict_5");
+    return t("analysis.verdict_6");
+  }
+
   const riskCounts = (["None", "Low", "Medium", "High"] as RiskLevel[]).map((lvl) => ({
     risk: lvl, count: results.filter((r) => r.risk_level === lvl).length,
   }));
@@ -205,7 +215,7 @@ export function AnalysisResult() {
                 <span className="text-[13px] font-medium text-ink">
                   {t("analysis.summary")} · {score.toFixed(1)} / {overallScale}
                 </span>
-                <p className="text-[11.5px] text-ink-muted mt-0.5">{t("analysis.score_hint")}</p>
+                <p className="text-[11.5px] text-ink-muted mt-0.5">{scoreVerdict(scorePct)}</p>
               </div>
             </div>
             <div className="space-y-2">
