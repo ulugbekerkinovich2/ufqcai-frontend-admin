@@ -1,12 +1,11 @@
-function scoreColor(v: number): string {
-  if (v <= 15) return "#0284C7"; // sky blue  — very safe
-  if (v <= 30) return "#0EA5E9"; // light blue — safe
-  if (v <= 45) return "#16A34A"; // green      — ok
-  if (v <= 58) return "#CA8A04"; // yellow     — caution
-  if (v <= 70) return "#EA580C"; // orange     — elevated
-  if (v <= 82) return "#DC2626"; // red        — high risk
-  if (v <= 92) return "#991B1B"; // dark red   — critical
-  return "#450A0A";              // near-black — extreme
+export function scoreColor(v: number): string {
+  if (v <= 15) return "#0284C7"; // sky blue
+  if (v <= 30) return "#0EA5E9"; // light blue
+  if (v <= 45) return "#16A34A"; // green
+  if (v <= 58) return "#CA8A04"; // yellow
+  if (v <= 70) return "#EA580C"; // orange
+  if (v <= 82) return "#DC2626"; // red
+  return "#991B1B";              // dark red (max)
 }
 
 export function ScoreGauge({ value, size = 144 }: { value: number; size?: number }) {

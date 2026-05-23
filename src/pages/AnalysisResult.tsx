@@ -4,7 +4,7 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api, API_BASE_URL } from "@/api/client";
 import type { Analysis, Document, RiskLevel, FlaggedSegment } from "@/types";
-import { ScoreGauge } from "@/components/shared/ScoreGauge";
+import { ScoreGauge, scoreColor } from "@/components/shared/ScoreGauge";
 import { RiskBadge } from "@/components/shared/RiskBadge";
 import { HighlightedText } from "@/components/shared/HighlightedText";
 import { AnalysisProgress } from "@/components/shared/AnalysisProgress";
@@ -302,16 +302,29 @@ export function AnalysisResult() {
                   <PolarGrid stroke="#E5E5E1" strokeDasharray="2 4" />
                   <PolarAngleAxis
                     dataKey="name"
-                    tick={{ fill: "#4B5563", fontSize: 11 }}
+                    tick={({ payload, x, y, textAnchor }: any) => {
+                      const entry = [...radarData].sort((a, b) => b.raw - a.raw).slice(0, 12)
+                        .find((d) => d.name === payload.value);
+                      const pct = entry ? (entry.raw / scoreMax) * 100 : 0;
+                      return (
+                        <text x={x} y={y} textAnchor={textAnchor} fill={scoreColor(pct)} fontSize={11} fontWeight={500}>
+                          {payload.value}
+                        </text>
+                      );
+                    }}
                   />
                   <Radar
                     name="Score"
                     dataKey="score"
-                    stroke="#0F766E"
-                    strokeWidth={2}
-                    fill="#0F766E"
-                    fillOpacity={0.22}
-                    dot={{ fill: "#0F766E", r: 3 }}
+                    stroke="#94A3B8"
+                    strokeWidth={1.5}
+                    fill="#94A3B8"
+                    fillOpacity={0.12}
+                    dot={(props: any) => {
+                      const pct = (props.payload.raw / scoreMax) * 100;
+                      const c = scoreColor(pct);
+                      return <circle key={props.index} cx={props.cx} cy={props.cy} r={5} fill={c} stroke="white" strokeWidth={1.5} />;
+                    }}
                   />
                   <Tooltip
                     contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 8px 24px rgba(16,24,40,0.12)", fontSize: 13, padding: "8px 12px" }}
