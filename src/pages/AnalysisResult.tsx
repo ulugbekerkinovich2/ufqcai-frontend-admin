@@ -65,7 +65,7 @@ export function AnalysisResult() {
   const a = aQ.data;
 
   if (a.status === "pending" || a.status === "running") {
-    return <AnalysisProgress startedAt={a.started_at || a.created_at} />;
+    return <AnalysisProgress startedAt={a.started_at || a.created_at} analysisId={a.id} />;
   }
   if (a.status === "failed") {
     return (
