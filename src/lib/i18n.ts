@@ -255,6 +255,14 @@ const UZ: Record<string, string> = {
   "quota.monthly_budget": "Oylik byudjet tugadi. Iltimos, super admin bilan bog'laning.",
   "quota.user_daily_count": "Siz bugunlik tahlillar sonidan oshib ketdingiz. Ertaga urinib ko'ring.",
   "quota.user_daily_tokens": "Kunlik token limiti yetdi. Ertaga urinib ko'ring yoki admin bilan bog'laning.",
+  "settings.model": "AI modeli",
+  "settings.model_hint": "Tahlil uchun ishlatiladigan OpenAI modeli. Arzonroq model tezroq ishlaydi, lekin sifat farq qilishi mumkin.",
+  "settings.model_cat_cheap": "Arzon (tejamkor)",
+  "settings.model_cat_mid": "O'rta (tavsiya etiladi)",
+  "settings.model_cat_premium": "Premium (eng sifatli)",
+  "settings.model_current": "Joriy model",
+  "settings.model_price": "Narx (1M token)",
+  "settings.model_blended": "Aralash",
 };
 
 const RU: Record<string, string> = {
@@ -491,6 +499,14 @@ const RU: Record<string, string> = {
   "quota.monthly_budget": "Месячный бюджет исчерпан. Обратитесь к суперадминистратору.",
   "quota.user_daily_count": "Дневной лимит анализов исчерпан. Попробуйте завтра.",
   "quota.user_daily_tokens": "Дневной лимит токенов исчерпан. Попробуйте завтра или обратитесь к администратору.",
+  "settings.model": "AI модель",
+  "settings.model_hint": "Модель OpenAI для анализа. Более дешёвая модель быстрее, но качество может отличаться.",
+  "settings.model_cat_cheap": "Дешёвые (экономные)",
+  "settings.model_cat_mid": "Средние (рекомендуемые)",
+  "settings.model_cat_premium": "Премиум (лучшее качество)",
+  "settings.model_current": "Текущая модель",
+  "settings.model_price": "Цена (1M токенов)",
+  "settings.model_blended": "Смешанная",
 };
 
 const EN: Record<string, string> = {
@@ -727,6 +743,14 @@ const EN: Record<string, string> = {
   "quota.monthly_budget": "Monthly budget exhausted. Please contact the super admin.",
   "quota.user_daily_count": "Daily analysis limit reached. Try again tomorrow.",
   "quota.user_daily_tokens": "Daily token limit reached. Try again tomorrow or contact the admin.",
+  "settings.model": "AI model",
+  "settings.model_hint": "OpenAI model used for analysis. Cheaper models are faster but may vary in quality.",
+  "settings.model_cat_cheap": "Cheap (budget-friendly)",
+  "settings.model_cat_mid": "Mid-tier (recommended)",
+  "settings.model_cat_premium": "Premium (best quality)",
+  "settings.model_current": "Current model",
+  "settings.model_price": "Price (per 1M tokens)",
+  "settings.model_blended": "Blended",
 };
 
 const MESSAGES: Record<Lang, Record<string, string>> = { uz: UZ, ru: RU, en: EN };
