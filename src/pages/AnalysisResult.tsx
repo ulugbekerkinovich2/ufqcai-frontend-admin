@@ -29,6 +29,10 @@ export function AnalysisResult() {
   const { id } = useParams<{ id: string }>();
   const { accessToken } = useAuth();
 
+  // ----- Hooks: barchasi early-return'dan oldin -----
+  const [filter, setFilter] = useState<"all" | "high" | "flagged">("all");
+  const [sort, setSort] = useState<"score" | "risk">("risk");
+
   const aQ = useQuery({
     queryKey: ["analysis", id],
     queryFn: async () => (await api.get<Analysis>(`/analyses/${id}`)).data,
@@ -44,9 +48,19 @@ export function AnalysisResult() {
     enabled: !!aQ.data?.document_id,
   });
 
-  const [filter, setFilter] = useState<"all" | "high" | "flagged">("all");
-  const [sort, setSort] = useState<"score" | "risk">("risk");
+  const results = aQ.data?.results || [];
+  const flagged = aQ.data?.flagged || [];
 
+  const filteredResults = useMemo(() => {
+    let arr = [...results];
+    if (filter === "high") arr = arr.filter((r) => r.risk_level === "High");
+    if (filter === "flagged") arr = arr.filter((r) => flagged.some((f) => f.criterion_id === r.criterion_id));
+    if (sort === "score") arr.sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
+    if (sort === "risk") arr.sort((a, b) => (RISK_RANK[b.risk_level] - RISK_RANK[a.risk_level]) || (Number(b.score || 0) - Number(a.score || 0)));
+    return arr;
+  }, [results, flagged, filter, sort]);
+
+  // ----- Render guards -----
   if (!aQ.data) return <div className="text-ink-muted">{t("common.loading")}</div>;
   const a = aQ.data;
 
@@ -70,29 +84,15 @@ export function AnalysisResult() {
   }
 
   const score = Number(a.overall_score || 0);
-  const results = a.results || [];
-  const flagged = a.flagged || [];
-
   const radarData = results.map((r) => ({
     name: shorten(r.criterion_name || "", 14),
     fullName: r.criterion_name,
-    score: Number(r.score || 0),
+    score: Number(r.score || 0) * 10,  // backend 0-10 → 0-100 scale
     risk: r.risk_level as RiskLevel,
   }));
-
   const riskCounts = (["None", "Low", "Medium", "High"] as RiskLevel[]).map((lvl) => ({
     risk: lvl, count: results.filter((r) => r.risk_level === lvl).length,
   }));
-
-  // Filter + sort
-  const filteredResults = useMemo(() => {
-    let arr = [...results];
-    if (filter === "high") arr = arr.filter((r) => r.risk_level === "High");
-    if (filter === "flagged") arr = arr.filter((r) => flagged.some((f) => f.criterion_id === r.criterion_id));
-    if (sort === "score") arr.sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
-    if (sort === "risk") arr.sort((a, b) => RISK_RANK[b.risk_level] - RISK_RANK[a.risk_level]);
-    return arr;
-  }, [results, flagged, filter, sort]);
 
   async function downloadPdf() {
     const res = await fetch(`${API_BASE_URL}/analyses/${id}/report`, {
@@ -150,7 +150,6 @@ export function AnalysisResult() {
 
       {results.length > 0 && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-          {/* Yangi bar chart — horizontal, har bir mezon uchun progress bar */}
           <div className="card p-6">
             <div className="flex items-baseline justify-between mb-4">
               <h3 className="font-serif text-lg">{t("analysis.scores")}</h3>
@@ -159,20 +158,20 @@ export function AnalysisResult() {
             <div className="space-y-2.5 max-h-[400px] overflow-y-auto pr-1">
               {[...results].sort((a, b) => Number(b.score || 0) - Number(a.score || 0)).map((r) => {
                 const sc = Number(r.score || 0);
+                const pct = Math.max(2, sc * 10);  // 0-10 ball → 0-100% width
                 const color = RISK_COLOR[r.risk_level] || RISK_COLOR.None;
                 return (
-                  <div key={r.id} className="group">
+                  <div key={r.id}>
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-[13px] text-ink truncate flex-1">{r.criterion_name}</span>
-                      <span
-                        className="text-[12px] font-mono tabular-nums font-semibold"
-                        style={{ color }}
-                      >{sc.toFixed(1)}</span>
+                      <span className="text-[12px] font-mono tabular-nums font-semibold" style={{ color }}>
+                        {sc.toFixed(1)}
+                      </span>
                     </div>
                     <div className="h-1.5 w-full bg-surface-sunken rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-700 ease-out"
-                        style={{ width: `${Math.max(2, sc)}%`, backgroundColor: color }}
+                        style={{ width: `${pct}%`, backgroundColor: color }}
                       />
                     </div>
                   </div>
@@ -181,7 +180,6 @@ export function AnalysisResult() {
             </div>
           </div>
 
-          {/* Radar — yaxshilangan */}
           <div className="card p-6">
             <div className="flex items-baseline justify-between mb-4">
               <h3 className="font-serif text-lg">{t("analysis.radar")}</h3>
@@ -191,21 +189,7 @@ export function AnalysisResult() {
               <ResponsiveContainer>
                 <RadarChart data={radarData} margin={{ top: 16, right: 30, left: 30, bottom: 8 }}>
                   <PolarGrid stroke="#E5E5E1" strokeDasharray="2 4" />
-                  <PolarAngleAxis
-                    dataKey="name"
-                    tick={({ payload, x, y, textAnchor }: any) => (
-                      <text
-                        x={x}
-                        y={y}
-                        textAnchor={textAnchor}
-                        fill="#4B5563"
-                        fontSize={11}
-                        fontWeight={500}
-                      >
-                        {payload.value}
-                      </text>
-                    )}
-                  />
+                  <PolarAngleAxis dataKey="name" tick={{ fill: "#4B5563", fontSize: 11 }} />
                   <Radar
                     name="Score"
                     dataKey="score"
@@ -217,12 +201,7 @@ export function AnalysisResult() {
                   />
                   <Tooltip
                     contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 8px 24px rgba(16,24,40,0.12)", fontSize: 13, padding: "8px 12px" }}
-                    formatter={(v: any, _n, p: any) => [
-                      <span key="v" className="font-mono tabular-nums" style={{ color: RISK_COLOR[p.payload.risk] }}>
-                        {Number(v).toFixed(1)} / 100
-                      </span>,
-                      p.payload.fullName,
-                    ]}
+                    formatter={(v: any, _n: any, p: any) => [`${(Number(v) / 10).toFixed(1)} / 10`, p.payload.fullName]}
                   />
                 </RadarChart>
               </ResponsiveContainer>
@@ -231,7 +210,6 @@ export function AnalysisResult() {
         </div>
       )}
 
-      {/* Mezonlar tafsiloti + filter */}
       <div className="card overflow-hidden">
         <div className="px-6 py-5 flex flex-wrap items-center gap-4 justify-between">
           <h2 className="font-serif text-lg">{t("analysis.by_criterion")}</h2>
@@ -244,7 +222,7 @@ export function AnalysisResult() {
             ] as const).map((f) => (
               <button
                 key={f.v}
-                onClick={() => setFilter(f.v)}
+                onClick={() => setFilter(f.v as any)}
                 className={cn(
                   "h-8 px-3 rounded-full text-[12.5px] transition",
                   filter === f.v ? "bg-accent text-white" : "bg-surface-sunken text-ink-muted hover:text-ink",
@@ -258,7 +236,7 @@ export function AnalysisResult() {
             ] as const).map((s) => (
               <button
                 key={s.v}
-                onClick={() => setSort(s.v)}
+                onClick={() => setSort(s.v as any)}
                 className={cn(
                   "h-8 px-3 rounded-full text-[12.5px] transition",
                   sort === s.v ? "bg-ink/10 text-ink" : "text-ink-muted hover:text-ink",
