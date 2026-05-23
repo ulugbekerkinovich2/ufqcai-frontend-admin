@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { FlaggedSegment } from "@/types";
 import { RiskBadge } from "./RiskBadge";
 
@@ -7,9 +7,28 @@ const riskBg: Record<string, string> = {
   Medium: "bg-risk-medium-bg/70 hover:bg-risk-medium-bg",
   High: "bg-risk-high-bg/70 hover:bg-risk-high-bg",
 };
+const riskRing: Record<string, string> = {
+  Low: "ring-2 ring-risk-low-dot",
+  Medium: "ring-2 ring-risk-medium-dot",
+  High: "ring-2 ring-risk-high-dot",
+};
 
-export function HighlightedText({ text, segments }: { text: string; segments: FlaggedSegment[] }) {
+export function HighlightedText({
+  text,
+  segments,
+  activeId,
+}: {
+  text: string;
+  segments: FlaggedSegment[];
+  activeId?: string;
+}) {
   const [active, setActive] = useState<FlaggedSegment | null>(null);
+
+  useEffect(() => {
+    if (!activeId) return;
+    const seg = segments.find((s) => s.id === activeId);
+    if (seg) setActive(seg);
+  }, [activeId, segments]);
 
   const parts = useMemo(() => {
     const segs = segments
@@ -35,8 +54,9 @@ export function HighlightedText({ text, segments }: { text: string; segments: Fl
             p.seg ? (
               <mark
                 key={i}
+                data-seg-id={p.seg.id}
                 onClick={() => setActive(p.seg!)}
-                className={`cursor-pointer rounded-md px-1 py-0.5 transition text-ink ${riskBg[p.seg.risk_level || ""] || "bg-risk-low-bg/70"}`}
+                className={`cursor-pointer rounded-md px-1 py-0.5 transition text-ink ${riskBg[p.seg.risk_level || ""] || "bg-risk-low-bg/70"} ${active?.id === p.seg.id ? riskRing[p.seg.risk_level || ""] || "ring-2 ring-accent" : ""}`}
               >
                 {p.text}
               </mark>
@@ -60,7 +80,7 @@ export function HighlightedText({ text, segments }: { text: string; segments: Fl
           </>
         ) : (
           <div className="text-sm text-ink-muted">
-            Matnda <span className="text-ink">rangli belgilangan</span> parchaga bosing — bu yerda izoh va tegishli qonun ko'rinadi.
+            Yuqoridagi <span className="text-ink">mezonni bosing</span> — matnda ushbu mezonga oid belgilangan parcha topiladi.
           </div>
         )}
       </aside>

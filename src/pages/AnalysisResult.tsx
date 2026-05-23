@@ -1,14 +1,14 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api, API_BASE_URL } from "@/api/client";
-import type { Analysis, Document, RiskLevel } from "@/types";
+import type { Analysis, Document, RiskLevel, FlaggedSegment } from "@/types";
 import { ScoreGauge } from "@/components/shared/ScoreGauge";
 import { RiskBadge } from "@/components/shared/RiskBadge";
 import { HighlightedText } from "@/components/shared/HighlightedText";
 import { AnalysisProgress } from "@/components/shared/AnalysisProgress";
-import { Download, ArrowLeft, AlertTriangle, Filter } from "lucide-react";
+import { Download, ArrowLeft, AlertTriangle, Filter, Search } from "lucide-react";
 import { useAuth } from "@/store/auth";
 import {
   PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer, Tooltip,
@@ -20,8 +20,10 @@ const RISK_COLOR: Record<string, string> = {
 };
 const RISK_RANK: Record<string, number> = { None: 0, Low: 1, Medium: 2, High: 3 };
 
-function shorten(name: string, n = 22): string {
-  return name.length > n ? name.slice(0, n - 1) + "…" : name;
+function shorten(name: string, n = 14): string {
+  // "1. Nom" → "Nom" — raqamni olib tashlash, qisqartirish
+  const clean = name.replace(/^\s*\d+[.)]\s*/, "");
+  return clean.length > n ? clean.slice(0, n - 1) + "…" : clean;
 }
 
 export function AnalysisResult() {
@@ -29,9 +31,10 @@ export function AnalysisResult() {
   const { id } = useParams<{ id: string }>();
   const { accessToken } = useAuth();
 
-  // ----- Hooks: barchasi early-return'dan oldin -----
   const [filter, setFilter] = useState<"all" | "high" | "flagged">("all");
   const [sort, setSort] = useState<"score" | "risk">("risk");
+  const [activeSegment, setActiveSegment] = useState<FlaggedSegment | null>(null);
+  const textRef = useRef<HTMLDivElement | null>(null);
 
   const aQ = useQuery({
     queryKey: ["analysis", id],
@@ -51,16 +54,44 @@ export function AnalysisResult() {
   const results = aQ.data?.results || [];
   const flagged = aQ.data?.flagged || [];
 
+  // Score 0-10 yoki 0-100 — avtomatik aniqlash
+  const scoreMax = useMemo(() => {
+    const maxScore = Math.max(...results.map((r) => Number(r.score || 0)), 0);
+    return maxScore > 10 ? 100 : 10;
+  }, [results]);
+
   const filteredResults = useMemo(() => {
     let arr = [...results];
     if (filter === "high") arr = arr.filter((r) => r.risk_level === "High");
-    if (filter === "flagged") arr = arr.filter((r) => flagged.some((f) => f.criterion_id === r.criterion_id));
+    if (filter === "flagged") arr = arr.filter((r) =>
+      flagged.some((f) => f.criterion_id && f.criterion_id === r.criterion_id) ||
+      flagged.some((f) => f.criterion_id == null && r.criterion_name && f.explanation?.includes(r.criterion_name || ""))
+    );
     if (sort === "score") arr.sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
     if (sort === "risk") arr.sort((a, b) => (RISK_RANK[b.risk_level] - RISK_RANK[a.risk_level]) || (Number(b.score || 0) - Number(a.score || 0)));
     return arr;
   }, [results, flagged, filter, sort]);
 
-  // ----- Render guards -----
+  // criterion_id (yoki criterion_name) → flagged segments
+  const flagsByCriterion = useMemo(() => {
+    const map: Record<string, FlaggedSegment[]> = {};
+    for (const f of flagged) {
+      const key = f.criterion_id || "";
+      if (!map[key]) map[key] = [];
+      map[key].push(f);
+    }
+    return map;
+  }, [flagged]);
+
+  // ScrollIntoView segment'ga
+  useEffect(() => {
+    if (!activeSegment || !textRef.current) return;
+    const el = textRef.current.querySelector<HTMLElement>(`[data-seg-id="${activeSegment.id}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [activeSegment]);
+
   if (!aQ.data) return <div className="text-ink-muted">{t("common.loading")}</div>;
   const a = aQ.data;
 
@@ -84,12 +115,19 @@ export function AnalysisResult() {
   }
 
   const score = Number(a.overall_score || 0);
+  // overall_score uchun ham normalize
+  const overallScale = score > 10 ? 100 : 10;
+  const scorePct = (score / overallScale) * 100;
+
+  // Radar — toza, faqat name + score (0-100% normalized)
   const radarData = results.map((r) => ({
-    name: shorten(r.criterion_name || "", 14),
+    name: shorten(r.criterion_name || ""),
     fullName: r.criterion_name,
-    score: Number(r.score || 0) * 10,  // backend 0-10 → 0-100 scale
+    raw: Number(r.score || 0),
+    score: (Number(r.score || 0) / scoreMax) * 100,
     risk: r.risk_level as RiskLevel,
   }));
+
   const riskCounts = (["None", "Low", "Medium", "High"] as RiskLevel[]).map((lvl) => ({
     risk: lvl, count: results.filter((r) => r.risk_level === lvl).length,
   }));
@@ -105,6 +143,26 @@ export function AnalysisResult() {
     link.download = `tahlil-${id}.pdf`;
     link.click();
     URL.revokeObjectURL(url);
+  }
+
+  function jumpToCriterion(criterionId?: string | null, criterionName?: string | null) {
+    let segs = criterionId ? (flagsByCriterion[criterionId] || []) : [];
+    if (segs.length === 0 && criterionName) {
+      // criterion_id null bo'lsa, criterion_name bo'yicha qidirish
+      segs = flagged.filter((f) =>
+        f.explanation?.toLowerCase().includes((criterionName || "").toLowerCase()) ||
+        false
+      );
+    }
+    if (segs.length === 0) {
+      // Hech narsa topilmasa, eng yuqori riskli birinchisini olamiz
+      segs = [...flagged].sort((a, b) =>
+        (RISK_RANK[b.risk_level || "None"] || 0) - (RISK_RANK[a.risk_level || "None"] || 0)
+      );
+    }
+    if (segs.length > 0) {
+      setActiveSegment(segs[0]);
+    }
   }
 
   return (
@@ -128,11 +186,13 @@ export function AnalysisResult() {
 
       <div className="card p-8">
         <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] gap-8 items-center">
-          <ScoreGauge value={score} />
+          <ScoreGauge value={scorePct} />
           <div>
             <div className="flex items-center gap-3 mb-4">
               <RiskBadge level={a.overall_risk} />
-              <span className="text-[12.5px] text-ink-subtle">{t("analysis.summary")}</span>
+              <span className="text-[12.5px] text-ink-subtle">
+                {t("analysis.summary")} · {score.toFixed(1)} / {overallScale}
+              </span>
             </div>
             <p className="text-[15px] leading-relaxed text-ink text-pretty">{a.summary}</p>
           </div>
@@ -153,17 +213,28 @@ export function AnalysisResult() {
           <div className="card p-6">
             <div className="flex items-baseline justify-between mb-4">
               <h3 className="font-serif text-lg">{t("analysis.scores")}</h3>
-              <span className="text-[12px] text-ink-muted">{results.length}</span>
+              <span className="text-[12px] text-ink-muted">{results.length} · 0–{scoreMax}</span>
             </div>
             <div className="space-y-2.5 max-h-[400px] overflow-y-auto pr-1">
               {[...results].sort((a, b) => Number(b.score || 0) - Number(a.score || 0)).map((r) => {
                 const sc = Number(r.score || 0);
-                const pct = Math.max(2, sc * 10);  // 0-10 ball → 0-100% width
+                const pct = Math.max(2, (sc / scoreMax) * 100);
                 const color = RISK_COLOR[r.risk_level] || RISK_COLOR.None;
+                const hasFlags = (flagsByCriterion[r.criterion_id || ""] || []).length > 0;
                 return (
-                  <div key={r.id}>
+                  <button
+                    key={r.id}
+                    onClick={() => jumpToCriterion(r.criterion_id, r.criterion_name)}
+                    className="w-full text-left group hover:bg-surface-sunken/40 rounded-lg px-2 py-1.5 -mx-2 transition"
+                    title={hasFlags ? "Matn ichidan topish" : ""}
+                  >
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[13px] text-ink truncate flex-1">{r.criterion_name}</span>
+                      <span className="text-[13px] text-ink truncate flex-1 group-hover:text-accent transition">
+                        {r.criterion_name}
+                        {hasFlags && (
+                          <Search size={11} className="inline ml-1.5 text-ink-subtle group-hover:text-accent" />
+                        )}
+                      </span>
                       <span className="text-[12px] font-mono tabular-nums font-semibold" style={{ color }}>
                         {sc.toFixed(1)}
                       </span>
@@ -174,7 +245,7 @@ export function AnalysisResult() {
                         style={{ width: `${pct}%`, backgroundColor: color }}
                       />
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -183,13 +254,21 @@ export function AnalysisResult() {
           <div className="card p-6">
             <div className="flex items-baseline justify-between mb-4">
               <h3 className="font-serif text-lg">{t("analysis.radar")}</h3>
-              <span className="text-[12px] text-ink-muted">{results.length}</span>
+              <span className="text-[12px] text-ink-muted">Top {Math.min(12, results.length)}</span>
             </div>
+            {/* Radar — faqat top-12 eng yuqori ballik, overlap kamayadi */}
             <div className="h-[400px]">
               <ResponsiveContainer>
-                <RadarChart data={radarData} margin={{ top: 16, right: 30, left: 30, bottom: 8 }}>
+                <RadarChart
+                  data={[...radarData].sort((a, b) => b.raw - a.raw).slice(0, 12)}
+                  margin={{ top: 16, right: 30, left: 30, bottom: 8 }}
+                  outerRadius="78%"
+                >
                   <PolarGrid stroke="#E5E5E1" strokeDasharray="2 4" />
-                  <PolarAngleAxis dataKey="name" tick={{ fill: "#4B5563", fontSize: 11 }} />
+                  <PolarAngleAxis
+                    dataKey="name"
+                    tick={{ fill: "#4B5563", fontSize: 11 }}
+                  />
                   <Radar
                     name="Score"
                     dataKey="score"
@@ -201,7 +280,10 @@ export function AnalysisResult() {
                   />
                   <Tooltip
                     contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 8px 24px rgba(16,24,40,0.12)", fontSize: 13, padding: "8px 12px" }}
-                    formatter={(v: any, _n: any, p: any) => [`${(Number(v) / 10).toFixed(1)} / 10`, p.payload.fullName]}
+                    formatter={(_v: any, _n: any, p: any) => [
+                      `${p.payload.raw.toFixed(1)} / ${scoreMax}`,
+                      p.payload.fullName,
+                    ]}
                   />
                 </RadarChart>
               </ResponsiveContainer>
@@ -246,27 +328,41 @@ export function AnalysisResult() {
           </div>
         </div>
         <ul className="surface-divider divide-y divide-ink/[0.05]">
-          {filteredResults.map((r) => (
-            <li key={r.id} className="px-6 py-5 hover:bg-surface-sunken/40 transition">
-              <div className="flex flex-wrap items-baseline gap-3 mb-2">
-                <h4 className="font-serif text-[17px]">{r.criterion_name}</h4>
-                <RiskBadge level={r.risk_level} />
-                <span className="text-[12px] text-ink-muted ml-auto tabular-nums">{t("analysis.score")}: {r.score?.toString()}</span>
-              </div>
-              {r.finding && (
-                <div className="text-[14px] text-ink leading-relaxed mt-2">
-                  <span className="text-ink-muted text-[12.5px] uppercase tracking-wide mr-2">{t("analysis.found")}</span>
-                  {r.finding}
+          {filteredResults.map((r) => {
+            const hasFlags = (flagsByCriterion[r.criterion_id || ""] || []).length > 0;
+            return (
+              <li
+                key={r.id}
+                className="px-6 py-5 hover:bg-surface-sunken/40 transition cursor-pointer"
+                onClick={() => jumpToCriterion(r.criterion_id, r.criterion_name)}
+              >
+                <div className="flex flex-wrap items-baseline gap-3 mb-2">
+                  <h4 className="font-serif text-[17px]">{r.criterion_name}</h4>
+                  <RiskBadge level={r.risk_level} />
+                  {hasFlags && (
+                    <span className="chip bg-accent-50 text-accent-700 text-[11px]">
+                      <Search size={10} /> {t("analysis.find_in_text")}
+                    </span>
+                  )}
+                  <span className="text-[12px] text-ink-muted ml-auto tabular-nums">
+                    {t("analysis.score")}: {r.score?.toString()} / {scoreMax}
+                  </span>
                 </div>
-              )}
-              {r.recommendation && (
-                <div className="text-[14px] text-ink-muted leading-relaxed mt-2">
-                  <span className="text-accent text-[12.5px] uppercase tracking-wide mr-2">{t("analysis.recommendation")}</span>
-                  {r.recommendation}
-                </div>
-              )}
-            </li>
-          ))}
+                {r.finding && (
+                  <div className="text-[14px] text-ink leading-relaxed mt-2">
+                    <span className="text-ink-muted text-[12.5px] uppercase tracking-wide mr-2">{t("analysis.found")}</span>
+                    {r.finding}
+                  </div>
+                )}
+                {r.recommendation && (
+                  <div className="text-[14px] text-ink-muted leading-relaxed mt-2">
+                    <span className="text-accent text-[12.5px] uppercase tracking-wide mr-2">{t("analysis.recommendation")}</span>
+                    {r.recommendation}
+                  </div>
+                )}
+              </li>
+            );
+          })}
           {filteredResults.length === 0 && (
             <li className="px-6 py-10 text-center text-ink-muted text-sm">{t("common.empty")}</li>
           )}
@@ -274,12 +370,16 @@ export function AnalysisResult() {
       </div>
 
       {docQ.data?.extracted_text && (
-        <div>
+        <div ref={textRef}>
           <div className="flex items-baseline justify-between mb-4">
             <h2 className="font-serif text-xl">{t("analysis.text_highlighted")}</h2>
             <span className="text-[12px] text-ink-muted">{t("analysis.click_segment")}</span>
           </div>
-          <HighlightedText text={docQ.data.extracted_text} segments={a.flagged || []} />
+          <HighlightedText
+            text={docQ.data.extracted_text}
+            segments={a.flagged || []}
+            activeId={activeSegment?.id}
+          />
         </div>
       )}
     </div>
