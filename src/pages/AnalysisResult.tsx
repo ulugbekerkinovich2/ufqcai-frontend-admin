@@ -41,6 +41,7 @@ export function AnalysisResult() {
   const aQ = useQuery({
     queryKey: ["analysis", id],
     queryFn: async () => (await api.get<Analysis>(`/analyses/${id}`)).data,
+    staleTime: 0,
     refetchInterval: (q) => {
       const s = q.state.data?.status;
       return s === "completed" || s === "failed" ? false : 2500;

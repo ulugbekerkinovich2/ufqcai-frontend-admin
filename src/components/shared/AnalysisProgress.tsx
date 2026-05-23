@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Loader2, FileSearch, BookOpen, Brain, Save } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { api } from "@/api/client";
@@ -30,6 +30,7 @@ function fmtTime(seconds: number): string {
 
 export function AnalysisProgress({ startedAt, analysisId }: { startedAt?: string; analysisId?: string }) {
   const { t } = useI18n();
+  const qc = useQueryClient();
   const [elapsed, setElapsed] = useState(0);
 
   // Backend status'dan real progress
@@ -42,6 +43,14 @@ export function AnalysisProgress({ startedAt, analysisId }: { startedAt?: string
 
   const stage = statusQ.data?.progress_stage || "queued";
   const percent = statusQ.data?.progress_percent ?? 0;
+  const statusDone = statusQ.data?.status === "completed" || statusQ.data?.status === "failed";
+
+  // statusQ "completed"/"failed" aniqlasa — parent aQ ni darhol invalidate qil
+  useEffect(() => {
+    if (statusDone && analysisId) {
+      qc.invalidateQueries({ queryKey: ["analysis", analysisId] });
+    }
+  }, [statusDone, analysisId]);
 
   // ETA — so'nggi tahlillarning o'rtachasi
   const etaQ = useQuery({

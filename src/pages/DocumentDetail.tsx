@@ -20,6 +20,13 @@ export function DocumentDetail() {
   const histQ = useQuery({
     queryKey: ["doc-analyses", id],
     queryFn: async () => (await api.get<Analysis[]>(`/documents/${id}/analyses`)).data,
+    staleTime: 0,
+    refetchInterval: (q) => {
+      const hasRunning = q.state.data?.some(
+        (a) => a.status === "pending" || a.status === "running",
+      );
+      return hasRunning ? 3000 : false;
+    },
   });
 
   const analyze = useMutation({
