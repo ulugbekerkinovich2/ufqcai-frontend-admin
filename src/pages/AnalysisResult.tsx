@@ -61,7 +61,8 @@ export function AnalysisResult() {
   }, [results]);
 
   const filteredResults = useMemo(() => {
-    let arr = [...results];
+    // None'larni tafsilotda hech qachon ko'rsatmaymiz — faqat aniqlangan risklar.
+    let arr = results.filter((r) => r.risk_level !== "None");
     if (filter === "high") arr = arr.filter((r) => r.risk_level === "High");
     if (filter === "flagged") arr = arr.filter((r) => flagsForCriterion(r.criterion_id, r.criterion_name).length > 0);
     if (sort === "score") arr.sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
