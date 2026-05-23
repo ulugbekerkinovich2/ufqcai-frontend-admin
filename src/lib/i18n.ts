@@ -247,6 +247,10 @@ const UZ: Record<string, string> = {
   "settings.level_3": "Qattiq",
   "settings.level_3_desc": "Potentsial xavflar ham belgilanadi — ehtiyotkor yondashuv",
   "settings.saved": "Saqlandi",
+  "settings.token_limit": "Kunlik token limiti",
+  "settings.token_limit_hint": "Har bir foydalanuvchiga kunlik tahlilda sarflash mumkin bo'lgan maksimal token soni. 0 — cheksiz.",
+  "settings.token_current": "Joriy limit",
+  "settings.token_zero_hint": "0 kiriting — limit yo'q (cheksiz tahlil). Foydalanuvchi sahifasidan alohida limit ham belgilanadi.",
   "app.copyright": "© 2026 UFQ MChJ. Barcha huquqlar himoyalangan.",
 };
 
@@ -476,6 +480,10 @@ const RU: Record<string, string> = {
   "settings.level_3": "Строгий",
   "settings.level_3_desc": "Потенциальные риски тоже отмечаются — осторожный подход",
   "settings.saved": "Сохранено",
+  "settings.token_limit": "Дневной лимит токенов",
+  "settings.token_limit_hint": "Максимальное количество токенов на пользователя в день. 0 — без ограничений.",
+  "settings.token_current": "Текущий лимит",
+  "settings.token_zero_hint": "Введите 0 — без лимита. На странице пользователей можно задать индивидуальный лимит.",
   "app.copyright": "© 2026 UFQ MChJ. Все права защищены.",
 };
 
@@ -705,6 +713,10 @@ const EN: Record<string, string> = {
   "settings.level_3": "Strict",
   "settings.level_3_desc": "Potential risks also flagged — cautious approach",
   "settings.saved": "Saved",
+  "settings.token_limit": "Daily token limit",
+  "settings.token_limit_hint": "Max tokens per user per day. Set to 0 for unlimited.",
+  "settings.token_current": "Current limit",
+  "settings.token_zero_hint": "Enter 0 for no limit. Per-user overrides can be set on the Users page.",
   "app.copyright": "© 2026 UFQ MChJ. All rights reserved.",
 };
 
