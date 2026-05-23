@@ -225,6 +225,11 @@ export function AnalysisResult() {
                 <p key={i} className="text-[15px] leading-relaxed text-ink text-pretty">{para}</p>
               ))}
             </div>
+            <div className="mt-4 pt-4 border-t border-ink/[0.06]">
+              <p className="text-[12px] text-ink-muted italic leading-relaxed">
+                Vazirlar Mahkamasining 2019 yil 19 avgustdagi 695-sonli qarori tegishli topshiriqlari bajarilgan holda.
+              </p>
+            </div>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 lg:min-w-[170px]">
             {riskCounts.map((r) => (
