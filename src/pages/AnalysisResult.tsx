@@ -17,6 +17,14 @@ const RISK_COLOR: Record<string, string> = {
 };
 const RISK_RANK: Record<string, number> = { None: 0, Low: 1, Medium: 2, High: 3 };
 
+// Legacy analyses had inverted scoring (100=safe). Clamp to expected range per risk level.
+function normalizeScore(raw: number, risk: string): number {
+  if (risk === "None") return Math.min(raw, 5);
+  if (risk === "Low") return Math.min(raw, 30);
+  if (risk === "Medium") return Math.min(raw, 60);
+  return raw; // High: trust the value
+}
+
 
 export function AnalysisResult() {
   const { t } = useI18n();
@@ -144,9 +152,8 @@ export function AnalysisResult() {
   }
 
   const score = Number(a.overall_score || 0);
-  // overall_score uchun ham normalize
   const overallScale = score > 10 ? 100 : 10;
-  const scorePct = (score / overallScale) * 100;
+  const scorePct = normalizeScore((score / overallScale) * 100, a.overall_risk || "None");
 
   const genres = a.genre || [];
 
@@ -213,7 +220,7 @@ export function AnalysisResult() {
               <RiskBadge level={a.overall_risk} />
               <div>
                 <span className="text-[13px] font-medium text-ink">
-                  {t("analysis.summary")} · {score.toFixed(1)} / {overallScale}
+                  {t("analysis.summary")} · {(scorePct * overallScale / 100).toFixed(1)} / {overallScale}
                 </span>
                 <p className="text-[11.5px] text-ink-muted mt-0.5">{scoreVerdict(scorePct)}</p>
               </div>
@@ -251,8 +258,8 @@ export function AnalysisResult() {
               </span>
             </div>
             <div className="space-y-2.5 max-h-[400px] overflow-y-auto pr-1">
-              {[...results].filter((r) => r.risk_level !== "None").sort((a, b) => Number(b.score || 0) - Number(a.score || 0)).map((r) => {
-                const sc = Number(r.score || 0);
+              {[...results].filter((r) => r.risk_level !== "None").sort((a, b) => normalizeScore(Number(b.score || 0), b.risk_level) - normalizeScore(Number(a.score || 0), a.risk_level)).map((r) => {
+                const sc = normalizeScore(Number(r.score || 0), r.risk_level);
                 const pct = Math.max(2, (sc / scoreMax) * 100);
                 const color = RISK_COLOR[r.risk_level] || RISK_COLOR.None;
                 const hasFlags = flagsForCriterion(r.criterion_id, r.criterion_name).length > 0;
@@ -415,7 +422,7 @@ export function AnalysisResult() {
                     </button>
                   )}
                   <span className="text-[12px] text-ink-muted ml-auto tabular-nums">
-                    {t("analysis.score")}: {r.score?.toString()} / {scoreMax}
+                    {t("analysis.score")}: {normalizeScore(Number(r.score || 0), r.risk_level).toFixed(1)} / {scoreMax}
                   </span>
                 </div>
 
