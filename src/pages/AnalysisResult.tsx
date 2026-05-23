@@ -34,6 +34,7 @@ export function AnalysisResult() {
   const [filter, setFilter] = useState<"all" | "high" | "flagged">("all");
   const [sort, setSort] = useState<"score" | "risk">("risk");
   const [activeSegment, setActiveSegment] = useState<FlaggedSegment | null>(null);
+  const [activeCriterionSegIds, setActiveCriterionSegIds] = useState<string[]>([]);
   const [showLow, setShowLow] = useState(false);
   const [showHiddenRecs, setShowHiddenRecs] = useState(false);
   const textRef = useRef<HTMLDivElement | null>(null);
@@ -120,14 +121,12 @@ export function AnalysisResult() {
     [filteredResults],
   );
 
-  // ScrollIntoView segment'ga
+  // Scroll to first active segment
   useEffect(() => {
-    if (!activeSegment || !textRef.current) return;
-    const el = textRef.current.querySelector<HTMLElement>(`[data-seg-id="${activeSegment.id}"]`);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, [activeSegment]);
+    if (!activeCriterionSegIds.length || !textRef.current) return;
+    const el = textRef.current.querySelector<HTMLElement>(`[data-seg-id="${activeCriterionSegIds[0]}"]`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [activeCriterionSegIds]);
 
   if (!aQ.data) return <div className="text-ink-muted">{t("common.loading")}</div>;
   const a = aQ.data;
@@ -186,11 +185,11 @@ export function AnalysisResult() {
 
   function jumpToCriterion(criterionId?: string | null, criterionName?: string | null) {
     const segs = flagsForCriterion(criterionId, criterionName);
-    if (segs.length > 0) {
-      // Eng yuqori riskli birinchi
-      const best = [...segs].sort((a, b) => (RISK_RANK[b.risk_level || "None"] || 0) - (RISK_RANK[a.risk_level || "None"] || 0))[0];
-      setActiveSegment(best);
-    }
+    if (segs.length === 0) return;
+    const sorted = [...segs].sort((a, b) => (RISK_RANK[b.risk_level || "None"] || 0) - (RISK_RANK[a.risk_level || "None"] || 0));
+    setActiveCriterionSegIds(sorted.map((s) => s.id));
+    setActiveSegment(sorted[0]);
+    textRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   return (
@@ -498,7 +497,7 @@ export function AnalysisResult() {
           <HighlightedText
             text={docQ.data.extracted_text}
             segments={a.flagged || []}
-            activeId={activeSegment?.id}
+            activeIds={activeCriterionSegIds}
           />
         </div>
       )}

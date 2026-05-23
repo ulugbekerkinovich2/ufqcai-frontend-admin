@@ -16,19 +16,20 @@ const riskRing: Record<string, string> = {
 export function HighlightedText({
   text,
   segments,
-  activeId,
+  activeIds,
 }: {
   text: string;
   segments: FlaggedSegment[];
-  activeId?: string;
+  activeIds?: string[];
 }) {
   const [active, setActive] = useState<FlaggedSegment | null>(null);
+  const activeSet = useMemo(() => new Set(activeIds ?? []), [activeIds]);
 
   useEffect(() => {
-    if (!activeId) return;
-    const seg = segments.find((s) => s.id === activeId);
+    if (!activeIds?.length) return;
+    const seg = segments.find((s) => s.id === activeIds[0]);
     if (seg) setActive(seg);
-  }, [activeId, segments]);
+  }, [activeIds, segments]);
 
   // AI quote ko'p hollarda matnga aynan mos kelmaydi (tinish belgilari/bo'shliqlar).
   // char_start/end NULL bo'lsa, quote'ni matn ichidan fuzzy qidiramiz.
@@ -82,14 +83,14 @@ export function HighlightedText({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5">
       <div className="card p-7 max-h-[640px] overflow-auto">
-        <div className="whitespace-pre-wrap leading-[1.85] text-[14.5px] text-ink font-sans">
+        <div className="whitespace-pre-wrap leading-[2] text-[15px] text-ink" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
           {parts.map((p, i) =>
             p.seg ? (
               <mark
                 key={i}
                 data-seg-id={p.seg.id}
                 onClick={() => setActive(p.seg!)}
-                className={`cursor-pointer rounded-md px-1 py-0.5 transition text-ink ${riskBg[p.seg.risk_level || ""] || "bg-risk-low-bg/70"} ${active?.id === p.seg.id ? riskRing[p.seg.risk_level || ""] || "ring-2 ring-accent" : ""}`}
+                className={`cursor-pointer rounded-md px-0.5 py-0.5 transition text-ink ${riskBg[p.seg.risk_level || ""] || "bg-risk-low-bg/70"} ${activeSet.has(p.seg.id) ? riskRing[p.seg.risk_level || ""] || "ring-2 ring-accent" : ""}`}
               >
                 {p.text}
               </mark>
