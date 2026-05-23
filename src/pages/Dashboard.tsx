@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import {
-  Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import type { Document } from "@/types";
 import { Link } from "react-router-dom";
@@ -10,7 +10,6 @@ import { formatDate } from "@/lib/utils";
 import { ArrowUpRight, FileText, ShieldCheck, Activity, Film } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
-const RISK_COLORS = ["#9CA3AF", "#D97706", "#EA580C", "#DC2626"];
 
 export function Dashboard() {
   const { t } = useI18n();
@@ -40,12 +39,6 @@ export function Dashboard() {
     const day = d.toLocaleDateString(undefined, { weekday: "short" });
     return { day, count: items.filter((it) => new Date(it.created_at).toDateString() === d.toDateString()).length };
   });
-
-  const pieData = (s?.by_risk || []).map((r) => ({
-    name: t(`risk.${r.risk}`),
-    value: r.count,
-    color: r.risk === "None" ? "#9CA3AF" : r.risk === "Low" ? "#D97706" : r.risk === "Medium" ? "#EA580C" : "#DC2626",
-  }));
 
   const stats = [
     { label: t("dashboard.total_scenarios"), value: s?.total_documents ?? items.length, icon: FileText },
@@ -103,57 +96,29 @@ export function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-        <div className="card p-6 xl:col-span-2">
-          <div className="flex items-baseline justify-between mb-5">
-            <h2 className="font-serif text-lg">{t("dashboard.trend")}</h2>
-            <span className="text-[12px] text-ink-muted">{t("dashboard.last7")}</span>
-          </div>
-          <div className="h-64">
-            <ResponsiveContainer>
-              <AreaChart data={trend} margin={{ top: 10, right: 8, left: -16, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="gAccent" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#0F766E" stopOpacity={0.18} />
-                    <stop offset="100%" stopColor="#0F766E" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid stroke="#EEEEEA" vertical={false} />
-                <XAxis dataKey="day" stroke="#9CA3AF" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#9CA3AF" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
-                <Tooltip
-                  contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 8px 24px rgba(16,24,40,0.12)", fontSize: 13 }}
-                />
-                <Area type="monotone" dataKey="count" stroke="#0F766E" strokeWidth={2} fill="url(#gAccent)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+      <div className="card p-6">
+        <div className="flex items-baseline justify-between mb-5">
+          <h2 className="font-serif text-lg">{t("dashboard.trend")}</h2>
+          <span className="text-[12px] text-ink-muted">{t("dashboard.last7")}</span>
         </div>
-
-        <div className="card p-6">
-          <div className="flex items-baseline justify-between mb-3">
-            <h2 className="font-serif text-lg">{t("dashboard.risk_distribution")}</h2>
-            <span className="text-[12px] text-ink-muted">{t("common.today")}</span>
-          </div>
-          <div className="h-44">
-            <ResponsiveContainer>
-              <PieChart>
-                <Pie data={pieData} dataKey="value" innerRadius={42} outerRadius={68} strokeWidth={0} paddingAngle={2}>
-                  {pieData.map((d, i) => <Cell key={i} fill={d.color} />)}
-                </Pie>
-                <Tooltip contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 8px 24px rgba(16,24,40,0.12)", fontSize: 13 }} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="grid grid-cols-2 gap-2 mt-4">
-            {pieData.map((d, i) => (
-              <div key={i} className="flex items-center gap-2 text-[12.5px]">
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: RISK_COLORS[i] }} />
-                <span className="text-ink-muted">{d.name}</span>
-                <span className="ml-auto tabular-nums text-ink">{d.value}</span>
-              </div>
-            ))}
-          </div>
+        <div className="h-64">
+          <ResponsiveContainer>
+            <AreaChart data={trend} margin={{ top: 10, right: 8, left: -16, bottom: 0 }}>
+              <defs>
+                <linearGradient id="gAccent" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#0F766E" stopOpacity={0.18} />
+                  <stop offset="100%" stopColor="#0F766E" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid stroke="#EEEEEA" vertical={false} />
+              <XAxis dataKey="day" stroke="#9CA3AF" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis stroke="#9CA3AF" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+              <Tooltip
+                contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 8px 24px rgba(16,24,40,0.12)", fontSize: 13 }}
+              />
+              <Area type="monotone" dataKey="count" stroke="#0F766E" strokeWidth={2} fill="url(#gAccent)" />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
