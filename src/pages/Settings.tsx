@@ -2,8 +2,16 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import { useI18n } from "@/lib/i18n";
-import { SlidersHorizontal, Check, Coins, Bot } from "lucide-react";
+import { SlidersHorizontal, Check, Coins, Bot, Wallet, RefreshCw, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+interface BalanceResp {
+  available: number | null;
+  used: number | null;
+  granted: number | null;
+  expires_at: number | null;
+  error: string | null;
+}
 
 interface Setting { key: string; value: string; }
 
@@ -86,6 +94,13 @@ export function Settings() {
   const currentModel = modelSetting?.value ?? "gpt-4o";
   const currentModelInfo = findModel(currentModel);
 
+  const balanceQ = useQuery<BalanceResp>({
+    queryKey: ["openai-balance"],
+    queryFn: async () => (await api.get<BalanceResp>("/usage/openai-balance")).data,
+    staleTime: 60_000,
+    retry: false,
+  });
+
   function flash() { setSaved(true); setTimeout(() => setSaved(false), 2000); }
 
   const mut = useMutation({
@@ -112,6 +127,60 @@ export function Settings() {
         <p className="text-[12.5px] uppercase tracking-[0.14em] text-ink-muted mb-2">{t("settings.section")}</p>
         <h1 className="font-serif text-[24px] leading-tight">{t("settings.title")}</h1>
       </header>
+
+      {/* OpenAI Balance */}
+      <div className="card p-8 max-w-2xl">
+        <div className="flex items-start justify-between gap-3 mb-6">
+          <div className="flex items-start gap-3">
+            <div className="h-10 w-10 rounded-xl bg-accent-50 text-accent grid place-items-center shrink-0">
+              <Wallet size={18} />
+            </div>
+            <div>
+              <h2 className="font-serif text-lg">{t("settings.balance")}</h2>
+              <p className="text-[13px] text-ink-muted mt-0.5">{t("settings.balance_hint")}</p>
+            </div>
+          </div>
+          <button
+            onClick={() => balanceQ.refetch()}
+            disabled={balanceQ.isFetching}
+            className="h-8 w-8 rounded-lg border border-ink/10 grid place-items-center text-ink-muted hover:text-ink hover:border-ink/20 transition shrink-0"
+          >
+            <RefreshCw size={14} className={balanceQ.isFetching ? "animate-spin" : ""} />
+          </button>
+        </div>
+
+        {balanceQ.isLoading ? (
+          <div className="text-[13px] text-ink-muted">{t("common.loading")}</div>
+        ) : balanceQ.data?.error ? (
+          <div className="flex items-center gap-2 text-[13px] text-risk-high-fg">
+            <AlertCircle size={14} />
+            {t("settings.balance_error")}: <span className="font-mono text-[12px]">{balanceQ.data.error}</span>
+          </div>
+        ) : balanceQ.data ? (
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { labelKey: "settings.balance_available", value: balanceQ.data.available, highlight: true },
+              { labelKey: "settings.balance_used",      value: balanceQ.data.used,      highlight: false },
+              { labelKey: "settings.balance_granted",   value: balanceQ.data.granted,   highlight: false },
+            ].map(({ labelKey, value, highlight }) => (
+              <div key={labelKey} className={cn(
+                "rounded-xl p-4 border",
+                highlight ? "bg-accent-50/40 border-accent/20" : "bg-surface-sunken border-transparent"
+              )}>
+                <div className="text-[11.5px] text-ink-muted mb-1">{t(labelKey)}</div>
+                <div className={cn("font-mono font-bold text-[20px] tabular-nums", highlight ? "text-accent" : "text-ink")}>
+                  {value != null ? `$${Number(value).toFixed(2)}` : "—"}
+                </div>
+              </div>
+            ))}
+            {balanceQ.data.expires_at && (
+              <div className="col-span-3 text-[12px] text-ink-subtle">
+                {t("settings.balance_expires")}: {new Date(balanceQ.data.expires_at * 1000).toLocaleDateString()}
+              </div>
+            )}
+          </div>
+        ) : null}
+      </div>
 
       {/* Strictness */}
       <div className="card p-8 max-w-2xl">
