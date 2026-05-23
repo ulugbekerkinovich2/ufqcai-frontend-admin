@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 type Lang = "uz" | "ru" | "en";
 
 const UZ: Record<string, string> = {
-  "app.title": "Senariy Analizer",
+  "app.title": "Ssenariy Tahlil",
   "app.subtitle": "Madaniyat vazirligi",
   // nav
   "nav.dashboard": "Boshqaruv paneli",
@@ -274,7 +274,7 @@ const UZ: Record<string, string> = {
 };
 
 const RU: Record<string, string> = {
-  "app.title": "Senariy Analizer",
+  "app.title": "Ssenariy Tahlil",
   "app.subtitle": "Министерство культуры",
   "nav.dashboard": "Панель управления",
   "nav.documents": "Сценарии",
@@ -526,7 +526,7 @@ const RU: Record<string, string> = {
 };
 
 const EN: Record<string, string> = {
-  "app.title": "Senariy Analizer",
+  "app.title": "Ssenariy Tahlil",
   "app.subtitle": "Ministry of Culture",
   "nav.dashboard": "Dashboard",
   "nav.documents": "Scripts",

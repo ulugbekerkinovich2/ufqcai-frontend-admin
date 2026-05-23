@@ -10,7 +10,7 @@ export function LogoMark({ size = 36 }: { size?: number }) {
       viewBox="0 0 40 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      aria-label="Senariy Analizer"
+      aria-label="Ssenariy Tahlil"
     >
       <rect width="40" height="40" rx="10" fill="#0F766E" />
       {/* Sahifa qatlamlari — ssenariy ma'nosi */}
@@ -26,7 +26,7 @@ export function LogoFull({ size = 36 }: { size?: number }) {
   return (
     <div className="inline-flex items-center gap-2.5">
       <LogoMark size={size} />
-      <span className="font-serif text-[17px] leading-tight text-ink">Senariy Analizer</span>
+      <span className="font-serif text-[17px] leading-tight text-ink">Ssenariy Tahlil</span>
     </div>
   );
 }
