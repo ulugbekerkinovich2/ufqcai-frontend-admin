@@ -444,23 +444,28 @@ export function AnalysisResult() {
             const hasFlags = segs.length > 0;
             const recHidden = isNoChangeRec(r.recommendation) && !showHiddenRecs;
             return (
-              <li key={r.id} data-result-id={r.id} className="px-6 py-5 hover:bg-surface-sunken/40 transition scroll-mt-6">
-                <div className="flex items-start gap-3 mb-2">
-                  <div className="flex flex-wrap items-baseline gap-2 flex-1 min-w-0">
-                    <h4 className="font-serif text-[17px]">{r.criterion_name}</h4>
-                    <RiskBadge level={r.risk_level} />
-                    {hasFlags && (
-                      <button
-                        onClick={() => jumpAllToText(r.criterion_id, r.criterion_name)}
-                        className="chip bg-accent-50 text-accent-700 text-[11px] hover:bg-accent-100 transition"
-                      >
-                        <Search size={10} /> {t("analysis.find_in_text")} ({segs.length})
-                      </button>
-                    )}
+              <li key={r.id} data-result-id={r.id} className="px-6 py-6 hover:bg-surface-sunken/40 transition scroll-mt-6">
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-serif text-[17px] leading-snug mb-2">{r.criterion_name}</h4>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <RiskBadge level={r.risk_level} />
+                      {hasFlags && (
+                        <button
+                          onClick={() => jumpAllToText(r.criterion_id, r.criterion_name)}
+                          className="chip bg-accent-50 text-accent-700 text-[11px] hover:bg-accent-100 transition"
+                        >
+                          <Search size={10} /> {t("analysis.find_in_text")} ({segs.length})
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <span className="text-[12px] text-ink-muted tabular-nums shrink-0 pt-1">
-                    {normalizeScore(Number(r.score || 0), r.risk_level).toFixed(1)} / {scoreMax}
-                  </span>
+                  <div className="shrink-0 text-right">
+                    <div className="text-[22px] font-serif tabular-nums leading-none">
+                      {normalizeScore(Number(r.score || 0), r.risk_level).toFixed(1)}
+                    </div>
+                    <div className="text-[11px] text-ink-muted mt-0.5">/ {scoreMax}</div>
+                  </div>
                 </div>
 
                 {r.finding && (
