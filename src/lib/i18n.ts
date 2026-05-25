@@ -90,6 +90,7 @@ const UZ: Record<string, string> = {
   "status.parsed": "Tayyor",
   "status.analyzing": "Tahlilda",
   "status.done": "Tugagan",
+  "status.completed": "Tugagan",
   "status.error": "Xato",
   // document detail
   "doc.back": "Ssenariylarga qaytish",
@@ -374,6 +375,7 @@ const RU: Record<string, string> = {
   "status.parsed": "Готово",
   "status.analyzing": "Анализ",
   "status.done": "Завершено",
+  "status.completed": "Завершено",
   "status.error": "Ошибка",
   "doc.back": "Назад к сценариям",
   "doc.section": "Сценарий",
@@ -650,6 +652,7 @@ const EN: Record<string, string> = {
   "status.parsed": "Ready",
   "status.analyzing": "Analyzing",
   "status.done": "Done",
+  "status.completed": "Done",
   "status.error": "Error",
   "doc.back": "Back to scripts",
   "doc.section": "Script",
