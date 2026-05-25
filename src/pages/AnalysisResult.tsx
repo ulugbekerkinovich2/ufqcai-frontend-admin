@@ -129,7 +129,28 @@ export function AnalysisResult() {
     if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "center" }), 400);
   }, [activeCriterionSegIds]);
 
-  if (!aQ.data) return <div className="text-ink-muted">{t("common.loading")}</div>;
+  if (!aQ.data) return (
+    <div className="space-y-5 animate-pulse">
+      <div className="h-6 w-32 bg-ink/[0.06] rounded-lg" />
+      <div className="card p-8 flex gap-6">
+        <div className="h-36 w-36 rounded-full bg-ink/[0.06] shrink-0" />
+        <div className="flex-1 space-y-3 pt-2">
+          <div className="h-6 w-56 bg-ink/[0.06] rounded-lg" />
+          <div className="h-4 w-full bg-ink/[0.06] rounded-lg" />
+          <div className="h-4 w-3/4 bg-ink/[0.06] rounded-lg" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-5">
+        <div className="card p-6 space-y-3">
+          {[1,2,3,4].map(i => <div key={i} className="h-16 bg-ink/[0.06] rounded-xl" />)}
+        </div>
+        <div className="card p-6 space-y-3">
+          <div className="h-4 w-32 bg-ink/[0.06] rounded-lg" />
+          <div className="h-64 bg-ink/[0.06] rounded-xl" />
+        </div>
+      </div>
+    </div>
+  );
   const a = aQ.data;
 
   if (a.status === "pending" || a.status === "running") {
@@ -424,19 +445,21 @@ export function AnalysisResult() {
             const recHidden = isNoChangeRec(r.recommendation) && !showHiddenRecs;
             return (
               <li key={r.id} data-result-id={r.id} className="px-6 py-5 hover:bg-surface-sunken/40 transition scroll-mt-6">
-                <div className="flex flex-wrap items-baseline gap-3 mb-2">
-                  <h4 className="font-serif text-[17px]">{r.criterion_name}</h4>
-                  <RiskBadge level={r.risk_level} />
-                  {hasFlags && (
-                    <button
-                      onClick={() => jumpAllToText(r.criterion_id, r.criterion_name)}
-                      className="chip bg-accent-50 text-accent-700 text-[11px] hover:bg-accent-100 transition"
-                    >
-                      <Search size={10} /> {t("analysis.find_in_text")} ({segs.length})
-                    </button>
-                  )}
-                  <span className="text-[12px] text-ink-muted ml-auto tabular-nums">
-                    {t("analysis.score")}: {normalizeScore(Number(r.score || 0), r.risk_level).toFixed(1)} / {scoreMax}
+                <div className="flex items-start gap-3 mb-2">
+                  <div className="flex flex-wrap items-baseline gap-2 flex-1 min-w-0">
+                    <h4 className="font-serif text-[17px]">{r.criterion_name}</h4>
+                    <RiskBadge level={r.risk_level} />
+                    {hasFlags && (
+                      <button
+                        onClick={() => jumpAllToText(r.criterion_id, r.criterion_name)}
+                        className="chip bg-accent-50 text-accent-700 text-[11px] hover:bg-accent-100 transition"
+                      >
+                        <Search size={10} /> {t("analysis.find_in_text")} ({segs.length})
+                      </button>
+                    )}
+                  </div>
+                  <span className="text-[12px] text-ink-muted tabular-nums shrink-0 pt-1">
+                    {normalizeScore(Number(r.score || 0), r.risk_level).toFixed(1)} / {scoreMax}
                   </span>
                 </div>
 
