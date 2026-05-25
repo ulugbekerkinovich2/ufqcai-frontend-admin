@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import { useI18n } from "@/lib/i18n";
 import { SlidersHorizontal, Check, Coins, Bot, Wallet, RefreshCw, AlertCircle } from "lucide-react";
+import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 interface BalanceResp {
@@ -106,19 +107,22 @@ export function Settings() {
   const mut = useMutation({
     mutationFn: async (v: number) =>
       (await api.put(`/settings/analysis_strictness`, { value: String(v) })).data,
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-settings"] }); flash(); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-settings"] }); flash(); toast.success(t("settings.saved")); },
+    onError: () => toast.error(t("common.error")),
   });
 
   const tokenMut = useMutation({
     mutationFn: async (v: string) =>
       (await api.put(`/settings/per_user_daily_tokens`, { value: v })).data,
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-settings"] }); setTokenInput(""); flash(); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-settings"] }); setTokenInput(""); flash(); toast.success(t("settings.saved")); },
+    onError: () => toast.error(t("common.error")),
   });
 
   const modelMut = useMutation({
     mutationFn: async (v: string) =>
       (await api.put(`/settings/openai_model`, { value: v })).data,
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-settings"] }); flash(); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-settings"] }); flash(); toast.success(t("settings.saved")); },
+    onError: () => toast.error(t("common.error")),
   });
 
   return (

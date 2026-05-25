@@ -3,6 +3,7 @@ import { api } from "@/api/client";
 import { useNavigate } from "react-router-dom";
 import { KeyRound, CheckCircle2, ArrowLeft } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { toast } from "@/lib/toast";
 
 export function ChangePassword() {
   const { t } = useI18n();
@@ -24,6 +25,7 @@ export function ChangePassword() {
       await api.post("/auth/change-password", { current_password: current, new_password: next });
       setOk(true);
       setCurrent(""); setNext(""); setConfirm("");
+      toast.success(t("auth.password_changed"));
       setTimeout(() => nav("/"), 1500);
     } catch (e: any) {
       setErr(e.response?.data?.detail || t("common.error"));

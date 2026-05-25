@@ -5,6 +5,9 @@ import type { Criterion } from "@/types";
 import { Pencil, Plus, X, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
+import { confirm } from "@/components/shared/ConfirmDialog";
+import { toast } from "@/lib/toast";
+import { Skeleton } from "@/components/shared/Skeleton";
 
 interface FormData {
   name: string;
@@ -33,7 +36,7 @@ export function Criteria() {
   const [form, setForm] = useState<FormData>(empty);
   const [filter, setFilter] = useState<string>("all");
 
-  const { data: items = [] } = useQuery({
+  const { data: items = [], isLoading: criteriaLoading } = useQuery({
     queryKey: ["criteria"],
     queryFn: async () => (await api.get<Criterion[]>("/criteria")).data,
   });
@@ -44,12 +47,21 @@ export function Criteria() {
       if (editing) return (await api.patch(`/criteria/${editing.id}`, payload)).data;
       return (await api.post("/criteria", payload)).data;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["criteria"] }); setOpen(false); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["criteria"] });
+      setOpen(false);
+      toast.success(editing ? t("criteria.updated") : t("criteria.created"));
+    },
+    onError: () => toast.error(t("common.error")),
   });
 
   const del = useMutation({
     mutationFn: async (id: string) => { await api.delete(`/criteria/${id}`); },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["criteria"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["criteria"] });
+      toast.success(t("criteria.deactivated"));
+    },
+    onError: () => toast.error(t("common.error")),
   });
 
   function openNew() { setEditing(null); setForm(empty); setOpen(true); }
@@ -101,7 +113,17 @@ export function Criteria() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {filtered.map((c) => {
+        {criteriaLoading ? (
+          <>
+            {[1,2,3,4].map((i) => (
+              <div key={i} className="card p-6 space-y-3">
+                <Skeleton className="h-5 w-40" />
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+            ))}
+          </>
+        ) : filtered.map((c) => {
           const cat = CAT_MAP[c.category || ""] || { label: c.category || "—", cls: "bg-surface-sunken text-ink-muted" };
           return (
             <article key={c.id} className="card p-6 card-hover">
@@ -129,7 +151,7 @@ export function Criteria() {
                 <button onClick={() => openEdit(c)} className="btn-ghost h-8 px-2.5 text-[12.5px]">
                   <Pencil size={13} /> Tahrirlash
                 </button>
-                <button onClick={() => confirm("Faolsizlantirilsinmi?") && del.mutate(c.id)}
+                <button onClick={async () => { if (await confirm({ message: t("criteria.deactivate_confirm") })) del.mutate(c.id); }}
                         className="btn-ghost h-8 px-2.5 text-[12.5px] hover:text-risk-high-fg">
                   <Trash2 size={13} /> O'chirish
                 </button>
@@ -137,7 +159,7 @@ export function Criteria() {
             </article>
           );
         })}
-        {filtered.length === 0 && (
+        {!criteriaLoading && filtered.length === 0 && (
           <div className="card p-10 text-center text-ink-muted lg:col-span-2">Hech narsa topilmadi</div>
         )}
       </div>

@@ -5,7 +5,7 @@ import { useAuth } from "@/store/auth";
 import { API_BASE_URL } from "@/api/client";
 import { useI18n } from "@/lib/i18n";
 import { LogoMark } from "@/components/shared/Logo";
-import { Loader2, ArrowRight } from "lucide-react";
+import { Loader2, ArrowRight, Eye, EyeOff } from "lucide-react";
 
 export function Login() {
   const { accessToken, setTokens, setUser } = useAuth();
@@ -13,6 +13,7 @@ export function Login() {
   const nav = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -81,15 +82,25 @@ export function Login() {
             </div>
             <div>
               <label className="label">{t("auth.password")}</label>
-              <input
-                className="input"
-                type="password"
-                autoComplete="current-password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <input
+                  className="input pr-10"
+                  type={showPwd ? "text" : "password"}
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPwd((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-subtle hover:text-ink transition"
+                  tabIndex={-1}
+                >
+                  {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
             </div>
           </div>
 

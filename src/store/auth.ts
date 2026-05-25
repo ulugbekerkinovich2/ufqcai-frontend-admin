@@ -7,6 +7,7 @@ interface User {
   full_name: string;
   role: string;
   is_active: boolean;
+  permissions: string[];
 }
 
 interface AuthState {

@@ -5,6 +5,8 @@ import type { Law } from "@/types";
 import { Trash2, Upload, BookOpen, CheckCircle2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
+import { confirm } from "@/components/shared/ConfirmDialog";
+import { toast } from "@/lib/toast";
 
 export function Laws() {
   const { t } = useI18n();
@@ -32,13 +34,18 @@ export function Laws() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["laws"] });
       setTitle(""); setDocNumber(""); setCategory(""); setFile(null); setErr("");
+      toast.success(t("laws.upload_success"));
     },
     onError: (e: any) => setErr(e.response?.data?.detail || "Xato"),
   });
 
   const del = useMutation({
     mutationFn: async (id: string) => { await api.delete(`/laws/${id}`); },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["laws"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["laws"] });
+      toast.success(t("laws.deleted"));
+    },
+    onError: () => toast.error(t("common.error")),
   });
 
   return (
@@ -113,7 +120,7 @@ export function Laws() {
                 </span>
               )}
               <button
-                onClick={() => confirm(t("common.confirm_delete")) && del.mutate(l.id)}
+                onClick={async () => { if (await confirm({ message: t("common.confirm_delete") })) del.mutate(l.id); }}
                 className="btn-ghost h-9 w-9 p-0 hover:text-risk-high-fg"
               ><Trash2 size={14} strokeWidth={1.75} /></button>
             </div>

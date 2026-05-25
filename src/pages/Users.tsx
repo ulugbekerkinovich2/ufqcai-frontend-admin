@@ -5,6 +5,9 @@ import { formatDate } from "@/lib/utils";
 import { Plus, X, ShieldCheck, User as UserIcon, Eye, Pencil, Check, Trash2, KeyRound } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { confirm } from "@/components/shared/ConfirmDialog";
+import { toast } from "@/lib/toast";
+import { TableSkeleton } from "@/components/shared/Skeleton";
 
 interface UserData {
   id: string; full_name: string; email: string; role: string; is_active: boolean;
@@ -68,7 +71,7 @@ export function Users() {
   const [resetPwd, setResetPwd] = useState("");
   const [editTokenLimit, setEditTokenLimit] = useState("");
 
-  const { data: items = [] } = useQuery({
+  const { data: items = [], isLoading: usersLoading } = useQuery({
     queryKey: ["users"],
     queryFn: async () => (await api.get<UserData[]>("/users")).data,
   });
@@ -79,7 +82,9 @@ export function Users() {
       qc.invalidateQueries({ queryKey: ["users"] });
       setCreateOpen(false);
       setCreateForm({ full_name: "", email: "", password: "", role: "viewer" });
+      toast.success(t("users.created"));
     },
+    onError: (e: any) => toast.error(e?.response?.data?.detail || t("common.error")),
   });
 
   const update = useMutation({
@@ -88,18 +93,27 @@ export function Users() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["users"] });
       setEditUser(null);
+      toast.success(t("users.saved"));
     },
+    onError: () => toast.error(t("common.error")),
   });
 
   const toggleActive = useMutation({
     mutationFn: async (u: UserData) =>
       (await api.patch(`/users/${u.id}`, { is_active: !u.is_active })).data,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
+    onSuccess: (_, u) => {
+      qc.invalidateQueries({ queryKey: ["users"] });
+      toast.info(u.is_active ? t("users.deactivated_msg") : t("users.activated_msg"));
+    },
   });
 
   const remove = useMutation({
     mutationFn: async (id: string) => api.delete(`/users/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["users"] });
+      toast.success(t("users.deleted"));
+    },
+    onError: () => toast.error(t("common.error")),
   });
 
   function openEdit(u: UserData) {
@@ -153,7 +167,7 @@ export function Users() {
               <th className="py-3 pr-6"></th>
             </tr>
           </thead>
-          <tbody>
+          {usersLoading ? <TableSkeleton rows={3} cols={6} /> : <tbody>
             {items.map((u) => {
               const initials = u.full_name.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
               return (
@@ -196,7 +210,7 @@ export function Users() {
                         {u.is_active ? t("users.deactivate") : t("users.activate")}
                       </button>
                       <button
-                        onClick={() => { if (confirm(t("users.delete_confirm"))) remove.mutate(u.id); }}
+                        onClick={async () => { if (await confirm({ message: t("users.delete_confirm"), confirmLabel: t("common.delete") })) remove.mutate(u.id); }}
                         className="btn-ghost h-8 w-8 p-0 text-risk-high-fg opacity-40 hover:opacity-100"
                         title={t("common.delete")}
                       >
@@ -212,7 +226,7 @@ export function Users() {
                 <td colSpan={6} className="px-6 py-10 text-center text-ink-muted text-sm">{t("common.empty")}</td>
               </tr>
             )}
-          </tbody>
+          </tbody>}
         </table>
       </div>
 

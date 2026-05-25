@@ -147,7 +147,7 @@ export function Dashboard() {
                     <div className="text-[12px] text-ink-subtle">{d.original_name}</div>
                   </td>
                   <td>
-                    <span className="chip bg-surface-sunken text-ink-muted">{d.status}</span>
+                    <span className="chip bg-surface-sunken text-ink-muted">{t(`status.${d.status}`)}</span>
                   </td>
                   <td className="text-[13px] text-ink-muted">{formatDate(d.created_at)}</td>
                   <td className="pr-6 text-right">
