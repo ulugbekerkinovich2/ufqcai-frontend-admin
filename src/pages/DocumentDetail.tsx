@@ -7,6 +7,7 @@ import { formatDate } from "@/lib/utils";
 import { ArrowLeft, Play, Eye, FileText, AlertCircle } from "lucide-react";
 import { RiskBadge } from "@/components/shared/RiskBadge";
 import { useI18n } from "@/lib/i18n";
+import { Skeleton } from "@/components/shared/Skeleton";
 
 export function DocumentDetail() {
   const { t } = useI18n();
@@ -40,7 +41,26 @@ export function DocumentDetail() {
     },
   });
 
-  if (!docQ.data) return <div className="text-ink-muted">{t("common.loading")}</div>;
+  if (docQ.isLoading) return (
+    <div className="space-y-7 animate-fade-in">
+      <Skeleton className="h-4 w-24" />
+      <div className="space-y-3">
+        <Skeleton className="h-3 w-20" />
+        <Skeleton className="h-8 w-96" />
+        <Skeleton className="h-4 w-64" />
+      </div>
+      <div className="card p-7 space-y-4">
+        <Skeleton className="h-5 w-32" />
+        <Skeleton className="h-48 w-full" />
+      </div>
+      <div className="card p-7 space-y-3">
+        <Skeleton className="h-5 w-40" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+    </div>
+  );
+  if (!docQ.data) return <div className="text-ink-muted text-sm p-6">{t("common.error")}</div>;
   const d = docQ.data;
   const history = histQ.data || [];
 

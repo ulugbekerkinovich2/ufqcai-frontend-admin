@@ -14,9 +14,14 @@ import { Settings } from "./pages/Settings";
 import { Layout } from "./components/shared/Layout";
 import { ProtectedRoute } from "./components/shared/ProtectedRoute";
 import { ErrorBoundary } from "./components/shared/ErrorBoundary";
+import { Toaster } from "./components/shared/Toaster";
+import { ConfirmDialog } from "./components/shared/ConfirmDialog";
 
 export default function App() {
   return (
+    <>
+    <Toaster />
+    <ConfirmDialog />
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
@@ -26,13 +31,14 @@ export default function App() {
         <Route path="analyses/:id" element={<ErrorBoundary><AnalysisResult /></ErrorBoundary>} />
         <Route path="criteria" element={<ErrorBoundary><Criteria /></ErrorBoundary>} />
         <Route path="laws" element={<ErrorBoundary><Laws /></ErrorBoundary>} />
-        <Route path="users" element={<ProtectedRoute superOnly><ErrorBoundary><Users /></ErrorBoundary></ProtectedRoute>} />
-        <Route path="usage" element={<ProtectedRoute superOnly><ErrorBoundary><Usage /></ErrorBoundary></ProtectedRoute>} />
-        <Route path="audit" element={<ProtectedRoute superOnly><ErrorBoundary><Audit /></ErrorBoundary></ProtectedRoute>} />
+        <Route path="users" element={<ProtectedRoute permission="manage_users"><ErrorBoundary><Users /></ErrorBoundary></ProtectedRoute>} />
+        <Route path="usage" element={<ProtectedRoute permission="view_usage"><ErrorBoundary><Usage /></ErrorBoundary></ProtectedRoute>} />
+        <Route path="audit" element={<ProtectedRoute permission="view_audit"><ErrorBoundary><Audit /></ErrorBoundary></ProtectedRoute>} />
         <Route path="settings" element={<ProtectedRoute superOnly><ErrorBoundary><Settings /></ErrorBoundary></ProtectedRoute>} />
         <Route path="change-password" element={<ErrorBoundary><ChangePassword /></ErrorBoundary>} />
       </Route>
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
+    </>
   );
 }
