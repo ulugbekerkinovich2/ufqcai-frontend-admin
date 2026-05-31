@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/store/auth";
 import {
   LogOut, FileText, ListChecks, BookOpen, Users, LayoutDashboard, ScrollText,
-  KeyRound, DollarSign, SlidersHorizontal, Menu, X,
+  KeyRound, DollarSign, SlidersHorizontal, Menu, X, Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
@@ -44,6 +44,7 @@ export function Layout() {
     { to: "/usage", label: t("nav.usage"), icon: DollarSign, visible: hasPerm("view_usage") },
     { to: "/audit", label: t("nav.audit"), icon: ScrollText, visible: hasPerm("view_audit") },
     { to: "/settings", label: t("nav.settings"), icon: SlidersHorizontal, visible: isSuper },
+    { to: "/capacity", label: t("nav.capacity"), icon: Activity, visible: isSuper },
   ];
 
   const SidebarContent = () => (

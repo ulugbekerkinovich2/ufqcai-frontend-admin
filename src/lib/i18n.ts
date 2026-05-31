@@ -282,6 +282,7 @@ const UZ: Record<string, string> = {
   "audit.act.enable_2fa": "2FA yoqildi",
   "audit.act.disable_2fa": "2FA o'chirildi",
   // settings
+  "nav.capacity": "Sig'im monitoringi",
   "nav.settings": "Tizim sozlamalari",
   "settings.title": "Tizim sozlamalari",
   "settings.section": "Admin",
@@ -580,6 +581,7 @@ const RU: Record<string, string> = {
   "audit.act.upload_law": "Загрузка закона",
   "audit.act.enable_2fa": "2FA включён",
   "audit.act.disable_2fa": "2FA отключён",
+  "nav.capacity": "Мониторинг нагрузки",
   "nav.settings": "Системные настройки",
   "settings.title": "Системные настройки",
   "settings.section": "Администрирование",
@@ -878,6 +880,7 @@ const EN: Record<string, string> = {
   "audit.act.upload_law": "Upload law",
   "audit.act.enable_2fa": "2FA enabled",
   "audit.act.disable_2fa": "2FA disabled",
+  "nav.capacity": "Capacity Monitor",
   "nav.settings": "System settings",
   "settings.title": "System settings",
   "settings.section": "Administration",

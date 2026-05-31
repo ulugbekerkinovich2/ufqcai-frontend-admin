@@ -11,6 +11,7 @@ import { Audit } from "./pages/Audit";
 import { Usage } from "./pages/Usage";
 import { ChangePassword } from "./pages/ChangePassword";
 import { Settings } from "./pages/Settings";
+import { Capacity } from "./pages/Capacity";
 import { Layout } from "./components/shared/Layout";
 import { ProtectedRoute } from "./components/shared/ProtectedRoute";
 import { ErrorBoundary } from "./components/shared/ErrorBoundary";
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="usage" element={<ProtectedRoute permission="view_usage"><ErrorBoundary><Usage /></ErrorBoundary></ProtectedRoute>} />
         <Route path="audit" element={<ProtectedRoute permission="view_audit"><ErrorBoundary><Audit /></ErrorBoundary></ProtectedRoute>} />
         <Route path="settings" element={<ProtectedRoute superOnly><ErrorBoundary><Settings /></ErrorBoundary></ProtectedRoute>} />
+        <Route path="capacity" element={<ProtectedRoute superOnly><ErrorBoundary><Capacity /></ErrorBoundary></ProtectedRoute>} />
         <Route path="change-password" element={<ErrorBoundary><ChangePassword /></ErrorBoundary>} />
       </Route>
       <Route path="*" element={<Navigate to="/" />} />
