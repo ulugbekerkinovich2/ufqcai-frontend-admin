@@ -141,7 +141,7 @@ export function DocumentDetail() {
 
       {reassignOpen && (
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-surface-raised rounded-2xl shadow-raised w-full max-w-md">
+          <div className="bg-surface-raised rounded-2xl shadow-raised w-full max-w-md animate-scale-in">
             <div className="px-7 py-5 flex items-center justify-between border-b border-ink/[0.05]">
               <h2 className="font-serif text-xl">{t("triage.reassign")}</h2>
               <button onClick={() => setReassignOpen(false)} className="btn-ghost h-9 w-9 p-0"><X size={16} /></button>

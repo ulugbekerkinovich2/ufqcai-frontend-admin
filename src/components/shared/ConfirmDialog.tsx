@@ -48,7 +48,7 @@ export function ConfirmDialog() {
 
   return (
     <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm flex items-center justify-center z-[9998] p-4 animate-fade-in">
-      <div className="bg-surface-raised rounded-2xl shadow-raised w-full max-w-sm">
+      <div className="bg-surface-raised rounded-2xl shadow-raised w-full max-w-sm animate-scale-in">
         <div className="px-6 pt-6 pb-4">
           <div className="flex items-start gap-3">
             <div className={`h-9 w-9 rounded-xl grid place-items-center shrink-0 ${opts.danger !== false ? "bg-risk-high-bg text-risk-high-fg" : "bg-surface-sunken text-ink-muted"}`}>

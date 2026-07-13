@@ -180,10 +180,14 @@ export function Users() {
             </tr>
           </thead>
           {usersLoading ? <TableSkeleton rows={3} cols={6} /> : <tbody>
-            {items.map((u) => {
+            {items.map((u, i) => {
               const initials = u.full_name.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
               return (
-                <tr key={u.id} className="border-t border-ink/[0.05] hover:bg-surface-sunken/40">
+                <tr
+                  key={u.id}
+                  className="border-t border-ink/[0.05] hover:bg-surface-sunken/40 animate-fade-in"
+                  style={{ animationDelay: `${Math.min(i, 12) * 35}ms`, animationFillMode: "backwards" }}
+                >
                   <td className="px-6 py-3">
                     <div className="flex items-center gap-3">
                       <div className="h-9 w-9 rounded-full bg-accent/10 text-accent grid place-items-center text-[13px] font-semibold shrink-0">
@@ -246,7 +250,7 @@ export function Users() {
       {/* Create modal */}
       {createOpen && (
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-surface-raised rounded-2xl shadow-raised w-full max-w-md">
+          <div className="bg-surface-raised rounded-2xl shadow-raised w-full max-w-md animate-scale-in">
             <div className="px-7 py-5 flex items-center justify-between border-b border-ink/[0.05]">
               <h2 className="font-serif text-xl">{t("users.new")}</h2>
               <button onClick={() => setCreateOpen(false)} className="btn-ghost h-9 w-9 p-0"><X size={16} /></button>
@@ -290,7 +294,7 @@ export function Users() {
       {/* Edit modal */}
       {editUser && (
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-surface-raised rounded-2xl shadow-raised w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="bg-surface-raised rounded-2xl shadow-raised w-full max-w-lg max-h-[90vh] overflow-y-auto animate-scale-in">
             <div className="px-7 py-5 flex items-center justify-between border-b border-ink/[0.05] sticky top-0 bg-surface-raised z-10">
               <div>
                 <h2 className="font-serif text-xl">{t("users.edit")}</h2>

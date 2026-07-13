@@ -28,7 +28,7 @@
     @apply hover:shadow-raised;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-4 h-10 rounded-xl text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:shadow-focus;
+    @apply inline-flex items-center justify-center gap-2 px-4 h-10 rounded-xl text-sm font-medium transition active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 focus:outline-none focus-visible:shadow-focus;
   }
   .btn-primary {
     @apply btn bg-accent text-white hover:bg-accent-700 active:bg-accent-800;

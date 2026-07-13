@@ -318,7 +318,7 @@ export function AnalysisResult() {
                     </div>
                     <div className="h-1.5 w-full bg-surface-sunken rounded-full overflow-hidden">
                       <div
-                        className="h-full rounded-full transition-all duration-700 ease-out"
+                        className="h-full rounded-full transition-[width,background-color] duration-700 ease-out"
                         style={{ width: `${pct}%`, backgroundColor: color }}
                       />
                     </div>

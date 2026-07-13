@@ -230,14 +230,15 @@ export function Documents() {
               </tr>
             </thead>
             {isLoading ? <TableSkeleton rows={4} cols={8} /> : <tbody>
-              {filtered.map((d) => {
+              {filtered.map((d, i) => {
                 const cls = STATUS_CLS[d.status] || "bg-surface-sunken text-ink-muted";
                 const label = t(`status.${d.status}`);
                 const isChecked = selected.has(d.id);
                 return (
                   <tr
                     key={d.id}
-                    className={`table-row border-t border-ink/[0.05] hover:bg-surface-sunken/50 ${isChecked ? "bg-accent-50/40" : ""}`}
+                    className={`table-row border-t border-ink/[0.05] hover:bg-surface-sunken/50 animate-fade-in ${isChecked ? "bg-accent-50/40" : ""}`}
+                    style={{ animationDelay: `${Math.min(i, 12) * 35}ms`, animationFillMode: "backwards" }}
                   >
                     <td className="px-6">
                       <input

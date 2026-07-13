@@ -85,10 +85,15 @@ export default {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.6" },
         },
+        scaleIn: {
+          from: { opacity: "0", transform: "scale(0.96) translateY(4px)" },
+          to: { opacity: "1", transform: "scale(1) translateY(0)" },
+        },
       },
       animation: {
         "fade-in": "fadeIn 200ms ease-out",
         "pulse-soft": "pulseSoft 1.8s ease-in-out infinite",
+        "scale-in": "scaleIn 220ms cubic-bezier(0.16, 1, 0.3, 1)",
       },
     },
   },

@@ -50,7 +50,7 @@ function GaugeBar({ value, warn = 70, danger = 85 }: { value: number; warn?: num
   const color = value >= danger ? "bg-risk-high-dot" : value >= warn ? "bg-risk-medium-dot" : "bg-risk-low-dot";
   return (
     <div className="w-full bg-ink/[0.06] rounded-full h-1.5 overflow-hidden">
-      <div className={`h-1.5 rounded-full transition-all duration-700 ${color}`} style={{ width: `${Math.min(value, 100)}%` }} />
+      <div className={`h-1.5 rounded-full transition-[width,background-color] duration-700 ${color}`} style={{ width: `${Math.min(value, 100)}%` }} />
     </div>
   );
 }
