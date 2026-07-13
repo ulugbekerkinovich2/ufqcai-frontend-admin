@@ -21,7 +21,7 @@ async function doRefresh(): Promise<string> {
   try {
     // Refresh token httpOnly cookie'da — body yubormaymiz, withCredentials cookie'ni jo'natadi.
     const { data } = await axios.post(`${API_BASE}/auth/refresh`, {}, { withCredentials: true });
-    setTokens(data.access_token, "");
+    setTokens(data.access_token);
     return data.access_token;
   } catch (e) {
     logout();

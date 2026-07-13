@@ -19,7 +19,6 @@ function renderWithRoute(children: React.ReactNode) {
 function setAuthState(overrides: Partial<ReturnType<typeof useAuth.getState>>) {
   useAuth.setState({
     accessToken: null,
-    refreshToken: null,
     user: null,
     ...overrides,
   } as any);

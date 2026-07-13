@@ -28,7 +28,7 @@ export function Login() {
       form.append("username", email);
       form.append("password", password);
       const { data } = await axios.post(`${API_BASE_URL}/auth/login`, form);
-      setTokens(data.access_token, data.refresh_token);
+      setTokens(data.access_token);
       const me = await axios.get(`${API_BASE_URL}/auth/me`, {
         headers: { Authorization: `Bearer ${data.access_token}` },
       });
