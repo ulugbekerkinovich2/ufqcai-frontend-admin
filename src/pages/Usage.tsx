@@ -3,9 +3,10 @@ import { api } from "@/api/client";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { DollarSign, Cpu, Activity, TrendingUp } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { Skeleton, TableSkeleton } from "@/components/shared/Skeleton";
 
 interface Summary {
-  total: { analyses: number; tokens: number; cost_usd: number };
+  total: { analyses: number; generations: number; tokens: number; cost_usd: number };
   today: { tokens: number; cost_usd: number };
   month: { tokens: number; cost_usd: number };
   by_model: { model: string; tokens: number; cost_usd: number; count: number }[];
@@ -54,10 +55,10 @@ export function Usage() {
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-        <StatCard icon={DollarSign} label={t("usage.total_cost")} value={fmtUSD(s?.total.cost_usd || 0)} sub={`${fmtInt(s?.total.tokens || 0)} token`} />
-        <StatCard icon={TrendingUp} label={t("common.today")} value={fmtUSD(s?.today.cost_usd || 0)} sub={`${fmtInt(s?.today.tokens || 0)} token`} />
-        <StatCard icon={Activity} label={t("common.month")} value={fmtUSD(s?.month.cost_usd || 0)} sub={`${fmtInt(s?.month.tokens || 0)} token`} />
-        <StatCard icon={Cpu} label={t("usage.analyses")} value={fmtInt(s?.total.analyses || 0)} sub={t("common.total")} />
+        <StatCard loading={sumQ.isLoading} icon={DollarSign} label={t("usage.total_cost")} value={fmtUSD(s?.total.cost_usd || 0)} sub={`${fmtInt(s?.total.tokens || 0)} token`} />
+        <StatCard loading={sumQ.isLoading} icon={TrendingUp} label={t("common.today")} value={fmtUSD(s?.today.cost_usd || 0)} sub={`${fmtInt(s?.today.tokens || 0)} token`} />
+        <StatCard loading={sumQ.isLoading} icon={Activity} label={t("common.month")} value={fmtUSD(s?.month.cost_usd || 0)} sub={`${fmtInt(s?.month.tokens || 0)} token`} />
+        <StatCard loading={sumQ.isLoading} icon={Cpu} label={t("usage.analyses")} value={fmtInt(s?.total.analyses || 0)} sub={`+${fmtInt(s?.total.generations || 0)} ${t("usage.generations")}`} />
       </div>
 
       <div className="card p-6">
@@ -95,6 +96,7 @@ export function Usage() {
             <h2 className="font-serif text-lg">{t("usage.by_model")}</h2>
             <span className="text-[12px] text-ink-muted">{(s?.by_model || []).length}</span>
           </div>
+          <div className="overflow-x-auto">
           <table className="w-full text-[13.5px]">
             <thead>
               <tr className="text-[12px] uppercase tracking-wide text-ink-muted">
@@ -104,7 +106,7 @@ export function Usage() {
                 <th className="text-right font-medium py-3 pr-6">{t("usage.total_cost")}</th>
               </tr>
             </thead>
-            <tbody>
+            {sumQ.isLoading ? <TableSkeleton rows={3} cols={4} /> : <tbody>
               {(s?.by_model || []).map((m) => (
                 <tr key={m.model} className="border-t border-ink/[0.05]">
                   <td className="px-6 py-3 font-mono text-[12.5px]">{m.model}</td>
@@ -116,8 +118,9 @@ export function Usage() {
               {(!s?.by_model || s.by_model.length === 0) && (
                 <tr><td colSpan={4} className="px-6 py-8 text-center text-ink-muted">{t("common.empty")}</td></tr>
               )}
-            </tbody>
+            </tbody>}
           </table>
+          </div>
         </div>
 
         <div className="card p-6">
@@ -147,6 +150,7 @@ export function Usage() {
         <div className="px-6 py-5">
           <h2 className="font-serif text-lg">{t("usage.by_user")}</h2>
         </div>
+        <div className="overflow-x-auto">
         <table className="w-full text-[13.5px]">
           <thead>
             <tr className="text-[12px] uppercase tracking-wide text-ink-muted">
@@ -156,7 +160,7 @@ export function Usage() {
               <th className="text-right font-medium py-3 pr-6">{t("usage.total_cost")}</th>
             </tr>
           </thead>
-          <tbody>
+          {byUserQ.isLoading ? <TableSkeleton rows={3} cols={4} /> : <tbody>
             {users.map((u) => (
               <tr key={u.user_id || u.email} className="border-t border-ink/[0.05]">
                 <td className="px-6 py-3">
@@ -171,14 +175,15 @@ export function Usage() {
             {users.length === 0 && (
               <tr><td colSpan={4} className="px-6 py-8 text-center text-ink-muted">{t("common.empty")}</td></tr>
             )}
-          </tbody>
+          </tbody>}
         </table>
+        </div>
       </div>
     </div>
   );
 }
 
-function StatCard({ icon: Icon, label, value, sub }: { icon: any; label: string; value: string; sub: string }) {
+function StatCard({ icon: Icon, label, value, sub, loading }: { icon: any; label: string; value: string; sub: string; loading?: boolean }) {
   return (
     <div className="card p-6">
       <div className="flex items-center justify-between mb-5">
@@ -187,7 +192,11 @@ function StatCard({ icon: Icon, label, value, sub }: { icon: any; label: string;
           <Icon size={15} strokeWidth={1.75} />
         </div>
       </div>
-      <div className="font-serif text-[28px] leading-none tabular-nums text-ink">{value}</div>
+      {loading ? (
+        <Skeleton className="h-8 w-24" />
+      ) : (
+        <div className="font-serif text-[28px] leading-none tabular-nums text-ink">{value}</div>
+      )}
       <div className="text-[12px] text-ink-subtle mt-2">{sub}</div>
     </div>
   );

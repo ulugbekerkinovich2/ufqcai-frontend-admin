@@ -19,7 +19,7 @@ export function ChangePassword() {
     e.preventDefault();
     setErr(""); setOk(false);
     if (next !== confirm) { setErr(t("auth.passwords_mismatch")); return; }
-    if (next.length < 6) { setErr(t("auth.password_too_short")); return; }
+    if (next.length < 8) { setErr(t("auth.password_too_short")); return; }
     setLoading(true);
     try {
       await api.post("/auth/change-password", { current_password: current, new_password: next });

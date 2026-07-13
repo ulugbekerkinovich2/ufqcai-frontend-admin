@@ -5,7 +5,8 @@ const API_BASE = (import.meta.env.VITE_API_BASE_URL || "/api/v1").replace(/\/+$/
 
 export const API_BASE_URL = API_BASE;
 
-export const api = axios.create({ baseURL: API_BASE });
+// withCredentials: refresh token httpOnly cookie'sini yuborish/qabul qilish uchun.
+export const api = axios.create({ baseURL: API_BASE, withCredentials: true });
 
 api.interceptors.request.use((config) => {
   const token = useAuth.getState().accessToken;
@@ -16,11 +17,11 @@ api.interceptors.request.use((config) => {
 let refreshing: Promise<string> | null = null;
 
 async function doRefresh(): Promise<string> {
-  const { refreshToken, setTokens, logout } = useAuth.getState();
-  if (!refreshToken) throw new Error("no refresh");
+  const { setTokens, logout } = useAuth.getState();
   try {
-    const { data } = await axios.post(`${API_BASE}/auth/refresh`, { refresh_token: refreshToken });
-    setTokens(data.access_token, data.refresh_token);
+    // Refresh token httpOnly cookie'da — body yubormaymiz, withCredentials cookie'ni jo'natadi.
+    const { data } = await axios.post(`${API_BASE}/auth/refresh`, {}, { withCredentials: true });
+    setTokens(data.access_token, "");
     return data.access_token;
   } catch (e) {
     logout();

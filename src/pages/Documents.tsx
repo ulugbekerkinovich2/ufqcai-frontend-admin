@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { confirm } from "@/components/shared/ConfirmDialog";
 import { toast } from "@/lib/toast";
 import { TableSkeleton } from "@/components/shared/Skeleton";
+import { ReviewStatusBadge } from "@/components/shared/ReviewStatusBadge";
 
 const STATUS_CLS: Record<string, string> = {
   uploaded: "bg-surface-sunken text-ink-muted",
@@ -207,6 +208,7 @@ export function Documents() {
             </div>
           )}
 
+          <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="text-[12px] uppercase tracking-wide text-ink-muted">
@@ -222,12 +224,13 @@ export function Documents() {
                 <th className="text-left font-medium py-3 w-24">{t("documents.col_format")}</th>
                 <th className="text-left font-medium py-3 w-24">{t("documents.col_size")}</th>
                 <th className="text-left font-medium py-3 w-32">{t("documents.col_status")}</th>
+                <th className="text-left font-medium py-3 w-36">{t("documents.col_review_status")}</th>
                 <th className="text-left font-medium py-3 w-40">{t("documents.col_date")}</th>
                 <th className="py-3 w-20"></th>
               </tr>
             </thead>
-            <tbody>
-              {isLoading ? <TableSkeleton rows={4} cols={7} /> : filtered.map((d) => {
+            {isLoading ? <TableSkeleton rows={4} cols={8} /> : <tbody>
+              {filtered.map((d) => {
                 const cls = STATUS_CLS[d.status] || "bg-surface-sunken text-ink-muted";
                 const label = t(`status.${d.status}`);
                 const isChecked = selected.has(d.id);
@@ -258,6 +261,7 @@ export function Documents() {
                     <td className="text-[13px] uppercase text-ink-muted tabular-nums">{d.file_type}</td>
                     <td className="text-[13px] text-ink-muted tabular-nums">{(d.file_size / 1024 / 1024).toFixed(2)} MB</td>
                     <td><span className={`chip ${cls}`}>{label}</span></td>
+                    <td><ReviewStatusBadge status={d.review_status} /></td>
                     <td className="text-[13px] text-ink-muted">{formatDate(d.created_at)}</td>
                     <td className="pr-6 text-right">
                       <div className="inline-flex gap-0.5">
@@ -271,9 +275,9 @@ export function Documents() {
                   </tr>
                 );
               })}
-              {!isLoading && filtered.length === 0 && (
+              {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
+                  <td colSpan={8} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center gap-2 text-ink-muted">
                       <Search size={20} strokeWidth={1.5} className="text-ink-subtle" />
                       <span className="text-sm">{t("documents.no_results")}</span>
@@ -281,8 +285,9 @@ export function Documents() {
                   </td>
                 </tr>
               )}
-            </tbody>
+            </tbody>}
           </table>
+          </div>
         </div>
       )}
     </div>

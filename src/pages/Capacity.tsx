@@ -47,7 +47,7 @@ interface StressResult {
 }
 
 function GaugeBar({ value, warn = 70, danger = 85 }: { value: number; warn?: number; danger?: number }) {
-  const color = value >= danger ? "bg-red-500" : value >= warn ? "bg-amber-400" : "bg-emerald-500";
+  const color = value >= danger ? "bg-risk-high-dot" : value >= warn ? "bg-risk-medium-dot" : "bg-risk-low-dot";
   return (
     <div className="w-full bg-ink/[0.06] rounded-full h-1.5 overflow-hidden">
       <div className={`h-1.5 rounded-full transition-all duration-700 ${color}`} style={{ width: `${Math.min(value, 100)}%` }} />
@@ -115,28 +115,28 @@ export function Capacity() {
 
       {/* Capacity Summary Banner */}
       {d && (
-        <div className="rounded-2xl bg-ink p-6 text-white">
+        <div className="card p-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             <div>
-              <div className="text-[11px] uppercase tracking-wide text-white/50 mb-1">Current Load</div>
-              <div className="font-serif text-[40px] tabular-nums leading-none">{d.capacity.load_percent}%</div>
+              <div className="text-[11px] uppercase tracking-wide text-ink-muted mb-1">Current Load</div>
+              <div className="font-serif text-[40px] tabular-nums leading-none text-ink">{d.capacity.load_percent}%</div>
               <div className="mt-2"><GaugeBar value={d.capacity.load_percent} warn={40} danger={75} /></div>
             </div>
             <div>
-              <div className="text-[11px] uppercase tracking-wide text-white/50 mb-1">Estimated Max</div>
-              <div className="font-serif text-[40px] tabular-nums leading-none">{d.capacity.estimated_max_users.toLocaleString()}</div>
-              <div className="text-[11px] text-white/40 mt-1">concurrent users</div>
+              <div className="text-[11px] uppercase tracking-wide text-ink-muted mb-1">Estimated Max</div>
+              <div className="font-serif text-[40px] tabular-nums leading-none text-ink">{d.capacity.estimated_max_users.toLocaleString()}</div>
+              <div className="text-[11px] text-ink-subtle mt-1">concurrent users</div>
             </div>
             <div>
-              <div className="text-[11px] uppercase tracking-wide text-white/50 mb-1">Active Now</div>
-              <div className="font-serif text-[40px] tabular-nums leading-none">{d.capacity.current_active_users}</div>
-              <div className="text-[11px] text-white/40 mt-1">last 1 hour</div>
+              <div className="text-[11px] uppercase tracking-wide text-ink-muted mb-1">Active Now</div>
+              <div className="font-serif text-[40px] tabular-nums leading-none text-ink">{d.capacity.current_active_users}</div>
+              <div className="text-[11px] text-ink-subtle mt-1">last 1 hour</div>
             </div>
             <div>
-              <div className="text-[11px] uppercase tracking-wide text-white/50 mb-2">Bottleneck Risk</div>
+              <div className="text-[11px] uppercase tracking-wide text-ink-muted mb-2">Bottleneck Risk</div>
               <RiskBadge risk={d.capacity.risk} />
               {d.capacity.bottlenecks.length > 0 && (
-                <div className="text-[11px] text-white/40 mt-2">{d.capacity.bottlenecks.join(" · ")}</div>
+                <div className="text-[11px] text-ink-subtle mt-2">{d.capacity.bottlenecks.join(" · ")}</div>
               )}
             </div>
           </div>
@@ -253,16 +253,16 @@ export function Capacity() {
                 <AreaChart data={histData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
                   <defs>
                     <linearGradient id="gA" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#0F766E" stopOpacity={0.22} />
+                      <stop offset="95%" stopColor="#0F766E" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="label" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 10 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#EEEEEA" />
+                  <XAxis dataKey="label" tick={{ fontSize: 10 }} stroke="#9CA3AF" />
+                  <YAxis tick={{ fontSize: 10 }} stroke="#9CA3AF" />
                   <Tooltip />
-                  <Area type="monotone" dataKey="analyses" stroke="#6366f1" fill="url(#gA)" strokeWidth={2} name="Analyses" />
-                  <Area type="monotone" dataKey="errors" stroke="#ef4444" fill="none" strokeWidth={1.5} strokeDasharray="4 2" name="Errors" />
+                  <Area type="monotone" dataKey="analyses" stroke="#0F766E" fill="url(#gA)" strokeWidth={2} name="Analyses" />
+                  <Area type="monotone" dataKey="errors" stroke="#C2410C" fill="none" strokeWidth={1.5} strokeDasharray="4 2" name="Errors" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -270,11 +270,11 @@ export function Capacity() {
               <p className="text-[11px] text-ink-muted mb-2 uppercase tracking-wide">Tokens per hour</p>
               <ResponsiveContainer width="100%" height={160}>
                 <BarChart data={histData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="label" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 10 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#EEEEEA" />
+                  <XAxis dataKey="label" tick={{ fontSize: 10 }} stroke="#9CA3AF" />
+                  <YAxis tick={{ fontSize: 10 }} stroke="#9CA3AF" />
                   <Tooltip />
-                  <Bar dataKey="tokens" fill="#10b981" radius={[3, 3, 0, 0]} name="Tokens" />
+                  <Bar dataKey="tokens" fill="#0F766E" radius={[3, 3, 0, 0]} name="Tokens" />
                 </BarChart>
               </ResponsiveContainer>
             </div>

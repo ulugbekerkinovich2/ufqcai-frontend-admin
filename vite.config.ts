@@ -4,7 +4,7 @@ import path from "path";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  const proxyTarget = env.VITE_DEV_PROXY_TARGET || "http://localhost:8001";
+  const proxyTarget = env.VITE_DEV_PROXY_TARGET || "http://localhost:8003";
   return {
     plugins: [react()],
     resolve: {
@@ -12,9 +12,15 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 5173,
+      host: true,
       proxy: {
         "/api": { target: proxyTarget, changeOrigin: true },
       },
+    },
+    test: {
+      environment: "jsdom",
+      globals: true,
+      setupFiles: ["./src/test/setup.ts"],
     },
   };
 });

@@ -2,15 +2,15 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { api, API_BASE_URL } from "@/api/client";
+import { api } from "@/api/client";
 import type { Analysis, Document, RiskLevel, FlaggedSegment } from "@/types";
 import { ScoreGauge, scoreColor } from "@/components/shared/ScoreGauge";
 import { RiskBadge } from "@/components/shared/RiskBadge";
 import { HighlightedText } from "@/components/shared/HighlightedText";
 import { AnalysisProgress } from "@/components/shared/AnalysisProgress";
 import { Download, ArrowLeft, AlertTriangle, Filter, Search, Film } from "lucide-react";
-import { useAuth } from "@/store/auth";
 import { cn } from "@/lib/utils";
+import { toast } from "@/lib/toast";
 
 const RISK_COLOR: Record<string, string> = {
   None: "#9CA3AF", Low: "#D97706", Medium: "#EA580C", High: "#C2410C",
@@ -29,7 +29,6 @@ function normalizeScore(raw: number, risk: string): number {
 export function AnalysisResult() {
   const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
-  const { accessToken } = useAuth();
 
   const [filter, setFilter] = useState<"all" | "high" | "flagged">("all");
   const [sort, setSort] = useState<"score" | "risk">("risk");
@@ -193,16 +192,17 @@ export function AnalysisResult() {
   }));
 
   async function downloadPdf() {
-    const res = await fetch(`${API_BASE_URL}/analyses/${id}/report`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `tahlil-${id}.pdf`;
-    link.click();
-    URL.revokeObjectURL(url);
+    try {
+      const res = await api.get(`/analyses/${id}/report`, { responseType: "blob" });
+      const url = URL.createObjectURL(res.data);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `tahlil-${id}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error(t("common.error"));
+    }
   }
 
   // Score bar click → scroll to criterion detail card

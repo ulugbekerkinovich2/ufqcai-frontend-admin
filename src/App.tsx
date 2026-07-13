@@ -19,6 +19,8 @@ const Usage          = lazy(() => import("./pages/Usage").then((m) => ({ default
 const Settings       = lazy(() => import("./pages/Settings").then((m) => ({ default: m.Settings })));
 const Capacity       = lazy(() => import("./pages/Capacity").then((m) => ({ default: m.Capacity })));
 const ChangePassword = lazy(() => import("./pages/ChangePassword").then((m) => ({ default: m.ChangePassword })));
+const Triage         = lazy(() => import("./pages/Triage").then((m) => ({ default: m.Triage })));
+const ExpertReview   = lazy(() => import("./pages/ExpertReview").then((m) => ({ default: m.ExpertReview })));
 
 function PageLoader() {
   return (
@@ -48,6 +50,9 @@ export default function App() {
             <Route path="audit" element={<ProtectedRoute permission="view_audit"><ErrorBoundary><Audit /></ErrorBoundary></ProtectedRoute>} />
             <Route path="settings" element={<ProtectedRoute superOnly><ErrorBoundary><Settings /></ErrorBoundary></ProtectedRoute>} />
             <Route path="capacity" element={<ProtectedRoute superOnly><ErrorBoundary><Capacity /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="triage" element={<ProtectedRoute roles={["mutaxassis"]}><ErrorBoundary><Triage /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="expert-review" element={<ProtectedRoute roles={["ekspert"]}><ErrorBoundary><ExpertReview /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="expert-review/:docId" element={<ProtectedRoute roles={["ekspert"]}><ErrorBoundary><ExpertReview /></ErrorBoundary></ProtectedRoute>} />
             <Route path="change-password" element={<ErrorBoundary><ChangePassword /></ErrorBoundary>} />
           </Route>
           <Route path="*" element={<Navigate to="/" />} />

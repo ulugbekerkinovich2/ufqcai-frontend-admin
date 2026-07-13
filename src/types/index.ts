@@ -1,5 +1,7 @@
 export type RiskLevel = "None" | "Low" | "Medium" | "High";
 
+export type ReviewStatus = "pending_triage" | "assigned" | "rejected" | "evaluated";
+
 export interface Document {
   id: string;
   title: string;
@@ -10,6 +12,30 @@ export interface Document {
   status: string;
   created_at: string;
   extracted_text?: string;
+  review_status: ReviewStatus;
+  assigned_expert_id?: string;
+  assigned_at?: string;
+  reject_reason?: string;
+}
+
+export interface ExpertReviewItem {
+  id: string;
+  criterion_id?: string;
+  criterion_name?: string;
+  risk_level?: RiskLevel;
+  score?: number | string;
+  comment?: string;
+}
+
+export interface ExpertReview {
+  id: string;
+  document_id: string;
+  expert_id: string;
+  overall_verdict?: "approved" | "rejected" | "needs_revision";
+  overall_comment?: string;
+  status: "draft" | "submitted";
+  submitted_at?: string;
+  items: ExpertReviewItem[];
 }
 
 export interface Criterion {
@@ -70,6 +96,9 @@ export interface Analysis {
   finished_at?: string;
   created_at: string;
   error_message?: string;
+  progress_stage?: string | null;
+  progress_percent?: number | null;
+  progress_message?: string | null;
   results?: AnalysisResult[];
   flagged?: FlaggedSegment[];
 }

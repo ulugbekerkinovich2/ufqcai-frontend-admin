@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/store/auth";
 import {
   LogOut, FileText, ListChecks, BookOpen, Users, LayoutDashboard, ScrollText,
-  KeyRound, DollarSign, SlidersHorizontal, Menu, X, Activity,
+  KeyRound, DollarSign, SlidersHorizontal, Menu, X, Activity, ClipboardCheck, UserSearch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
@@ -23,7 +23,10 @@ export function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isSuper = user?.role === "super_admin";
+  const isAdmin = isSuper || user?.role === "admin";
   const hasPerm = (key: string) => isSuper || (user?.permissions ?? []).includes(key);
+  const isMutaxassis = isAdmin || user?.role === "mutaxassis";
+  const isEkspert = isAdmin || user?.role === "ekspert";
   const initials = (user?.full_name || "?").split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
 
   // Close mobile sidebar on navigation
@@ -40,6 +43,8 @@ export function Layout() {
     { to: "/documents", label: t("nav.documents"), icon: FileText, visible: true },
     { to: "/criteria", label: t("nav.criteria"), icon: ListChecks, visible: true },
     { to: "/laws", label: t("nav.laws"), icon: BookOpen, visible: true },
+    { to: "/triage", label: t("nav.triage"), icon: UserSearch, visible: isMutaxassis },
+    { to: "/expert-review", label: t("nav.expert_review"), icon: ClipboardCheck, visible: isEkspert },
     { to: "/users", label: t("nav.users"), icon: Users, visible: hasPerm("manage_users") },
     { to: "/usage", label: t("nav.usage"), icon: DollarSign, visible: hasPerm("view_usage") },
     { to: "/audit", label: t("nav.audit"), icon: ScrollText, visible: hasPerm("view_audit") },
@@ -60,6 +65,7 @@ export function Layout() {
         {/* Close button - mobile only */}
         <button
           onClick={() => setMobileOpen(false)}
+          aria-label={t("common.cancel")}
           className="lg:hidden btn-ghost h-9 w-9 p-0 -mr-1"
         >
           <X size={18} />
@@ -89,6 +95,7 @@ export function Layout() {
             <button
               key={l.code}
               onClick={() => setLang(l.code)}
+              aria-pressed={lang === l.code}
               className={cn(
                 "flex-1 h-7 rounded-lg text-[11.5px] font-medium transition",
                 lang === l.code ? "bg-surface-raised text-ink shadow-soft" : "text-ink-muted hover:text-ink",
@@ -118,6 +125,7 @@ export function Layout() {
             onClick={() => { logout(); nav("/login"); }}
             className="btn-ghost h-8 text-[12.5px] hover:text-risk-high-fg"
             title={t("auth.logout")}
+            aria-label={t("auth.logout")}
           >
             <LogOut size={14} strokeWidth={1.75} />
           </button>
@@ -160,6 +168,7 @@ export function Layout() {
         <header className="lg:hidden flex items-center gap-3 px-5 h-14 bg-surface-raised border-b border-ink/[0.05] shrink-0">
           <button
             onClick={() => setMobileOpen(true)}
+            aria-label={t("common.open_menu")}
             className="btn-ghost h-9 w-9 p-0"
           >
             <Menu size={18} />

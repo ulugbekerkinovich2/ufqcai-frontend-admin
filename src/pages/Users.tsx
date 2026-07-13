@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import { formatDate } from "@/lib/utils";
-import { Plus, X, ShieldCheck, User as UserIcon, Eye, Pencil, Check, Trash2, KeyRound } from "lucide-react";
+import { Plus, X, ShieldCheck, User as UserIcon, Eye, Pencil, Check, Trash2, KeyRound, ClipboardCheck, UserSearch } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { confirm } from "@/components/shared/ConfirmDialog";
@@ -29,7 +29,28 @@ const ALL_PERMS = [
 const ROLE_PERMS: Record<string, string[]> = {
   super_admin: [...ALL_PERMS],
   admin: ["trigger_analysis", "upload_document", "edit_criteria", "upload_law", "delete_document"],
+  mutaxassis: [],
+  ekspert: [],
   viewer: [],
+  user: [],
+};
+
+// Admin panelida YANGI hisob yaratishda tanlanadigan rollar — "user" bu yerda yo'q,
+// chunki u faqat ochiq ro'yxatdan o'tish orqali beriladi (self-service).
+const ASSIGNABLE_ROLES = ["viewer", "mutaxassis", "ekspert", "admin", "super_admin"] as const;
+
+// Mavjud hisobni TAHRIRLASHDA esa "user" ham ko'rsatiladi — aks holda self-register
+// qilgan hisobni ochganda joriy roli grid'da hech qayerda "active" ko'rinmay qoladi,
+// va admin uni "user" holicha qoldira olmaydi.
+const EDITABLE_ROLES = ["viewer", "user", "mutaxassis", "ekspert", "admin", "super_admin"] as const;
+
+const ROLE_META: Record<string, { icon: typeof ShieldCheck; labelKey: string; cls: string; activeCls: string }> = {
+  super_admin: { icon: ShieldCheck, labelKey: "users.role_super", cls: "bg-accent-50 text-accent-700", activeCls: "bg-accent-50 text-accent-700 border-accent" },
+  admin: { icon: UserIcon, labelKey: "users.role_admin", cls: "bg-risk-medium-bg text-risk-medium-fg", activeCls: "bg-risk-medium-bg text-risk-medium-fg border-risk-medium-dot" },
+  mutaxassis: { icon: UserSearch, labelKey: "users.role_mutaxassis", cls: "bg-risk-low-bg text-risk-low-fg", activeCls: "bg-risk-low-bg text-risk-low-fg border-risk-low-dot" },
+  ekspert: { icon: ClipboardCheck, labelKey: "users.role_ekspert", cls: "bg-accent-50 text-accent-700", activeCls: "bg-accent-50 text-accent-700 border-accent" },
+  viewer: { icon: Eye, labelKey: "users.role_viewer", cls: "bg-surface-sunken text-ink-muted", activeCls: "bg-surface-sunken text-ink border-ink/30" },
+  user: { icon: Eye, labelKey: "users.role_user", cls: "bg-surface-sunken text-ink-muted", activeCls: "bg-surface-sunken text-ink border-ink/30" },
 };
 
 function roleGrantsPerm(role: string, perm: string) {
@@ -38,21 +59,11 @@ function roleGrantsPerm(role: string, perm: string) {
 
 function RoleBadge({ role }: { role: string }) {
   const { t } = useI18n();
-  if (role === "super_admin")
-    return (
-      <span className="chip bg-accent-50 text-accent-700">
-        <ShieldCheck size={12} /> {t("users.role_super")}
-      </span>
-    );
-  if (role === "admin")
-    return (
-      <span className="chip bg-risk-medium-bg text-risk-medium-fg">
-        <UserIcon size={12} /> {t("users.role_admin")}
-      </span>
-    );
+  const meta = ROLE_META[role] ?? ROLE_META.viewer;
+  const Icon = meta.icon;
   return (
-    <span className="chip bg-surface-sunken text-ink-muted">
-      <Eye size={12} /> {t("users.role_viewer")}
+    <span className={cn("chip", meta.cls)}>
+      <Icon size={12} /> {t(meta.labelKey)}
     </span>
   );
 }
@@ -156,6 +167,7 @@ export function Users() {
       </header>
 
       <div className="card overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="text-[12px] uppercase tracking-wide text-ink-muted">
@@ -228,6 +240,7 @@ export function Users() {
             )}
           </tbody>}
         </table>
+        </div>
       </div>
 
       {/* Create modal */}
@@ -240,27 +253,27 @@ export function Users() {
             </div>
             <form onSubmit={(e) => { e.preventDefault(); create.mutate(); }} className="p-7 space-y-4">
               <div>
-                <label className="label">{t("users.full_name")}</label>
-                <input className="input" required value={createForm.full_name}
+                <label htmlFor="create-full-name" className="label">{t("users.full_name")}</label>
+                <input id="create-full-name" className="input" required value={createForm.full_name}
                   onChange={(e) => setCreateForm({ ...createForm, full_name: e.target.value })} />
               </div>
               <div>
-                <label className="label">{t("auth.email")}</label>
-                <input type="email" className="input" required value={createForm.email}
+                <label htmlFor="create-email" className="label">{t("auth.email")}</label>
+                <input id="create-email" type="email" className="input" required value={createForm.email}
                   onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })} />
               </div>
               <div>
-                <label className="label">{t("users.initial_password")}</label>
-                <input type="password" className="input" required value={createForm.password}
+                <label htmlFor="create-password" className="label">{t("users.initial_password")}</label>
+                <input id="create-password" type="password" className="input" required minLength={8} value={createForm.password}
                   onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })} />
               </div>
               <div>
-                <label className="label">{t("users.role")}</label>
-                <select className="input" value={createForm.role}
+                <label htmlFor="create-role" className="label">{t("users.role")}</label>
+                <select id="create-role" className="input" value={createForm.role}
                   onChange={(e) => setCreateForm({ ...createForm, role: e.target.value })}>
-                  <option value="viewer">{t("users.role_viewer")}</option>
-                  <option value="admin">{t("users.role_admin")}</option>
-                  <option value="super_admin">{t("users.role_super")}</option>
+                  {ASSIGNABLE_ROLES.map((r) => (
+                    <option key={r} value={r}>{t(ROLE_META[r].labelKey)}</option>
+                  ))}
                 </select>
               </div>
               <div className="flex gap-2 pt-2">
@@ -297,31 +310,27 @@ export function Users() {
               <div>
                 <label className="label mb-2 block">{t("users.role")}</label>
                 <div className="grid grid-cols-3 gap-2">
-                  {(["viewer", "admin", "super_admin"] as const).map((r) => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => setEditRole(r)}
-                      className={cn(
-                        "p-3 rounded-xl border-2 text-left transition",
-                        editRole === r
-                          ? r === "super_admin"
-                            ? "bg-accent-50 text-accent-700 border-accent"
-                            : r === "admin"
-                            ? "bg-risk-medium-bg text-risk-medium-fg border-risk-medium-dot"
-                            : "bg-surface-sunken text-ink border-ink/30"
-                          : "bg-surface border-ink/[0.08] hover:border-ink/20",
-                      )}
-                    >
-                      <div className="flex items-center justify-between gap-1 mb-1">
-                        {r === "super_admin" ? <ShieldCheck size={13} /> : r === "admin" ? <UserIcon size={13} /> : <Eye size={13} />}
-                        {editRole === r && <Check size={12} />}
-                      </div>
-                      <div className="text-[12px] font-semibold leading-tight">
-                        {r === "super_admin" ? t("users.role_super") : r === "admin" ? t("users.role_admin") : t("users.role_viewer")}
-                      </div>
-                    </button>
-                  ))}
+                  {EDITABLE_ROLES.map((r) => {
+                    const meta = ROLE_META[r];
+                    const Icon = meta.icon;
+                    return (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setEditRole(r)}
+                        className={cn(
+                          "p-3 rounded-xl border-2 text-left transition",
+                          editRole === r ? meta.activeCls : "bg-surface border-ink/[0.08] hover:border-ink/20",
+                        )}
+                      >
+                        <div className="flex items-center justify-between gap-1 mb-1">
+                          <Icon size={13} />
+                          {editRole === r && <Check size={12} />}
+                        </div>
+                        <div className="text-[12px] font-semibold leading-tight">{t(meta.labelKey)}</div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

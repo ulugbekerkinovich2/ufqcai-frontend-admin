@@ -1,6 +1,6 @@
 # ufqcai-frontend — Senariy Analizer (React)
 
-O'zbekiston Madaniyat vazirligi uchun ssenariy tahlil tizimi frontend qismi.
+O'zbekiston Madaniyat vazirligi uchun ssenariy tahlil tizimi — **admin/xodimlar paneli** (viewer/admin/super_admin/mutaxassis/ekspert). Jamoatchilik uchun ochiq topshirish portali alohida ilova: `../frontend-user/` (ro'yxatdan o'tish, yuklash, holat kuzatish — `user` roli faqat o'sha ilovada).
 
 **Stack:** React 18 · TypeScript · Vite · Tailwind · TanStack Query · Zustand · React Router · Recharts · Axios.
 
@@ -40,12 +40,16 @@ Backend `localhost:8003` da bo'lishi kerak (`vite.config.ts`'da proxy sozlangan)
 - `/login` — Email + parol kirish
 - `/` — Dashboard (statistika)
 - `/documents` — ssenariylar, drag&drop yuklash
-- `/documents/:id` — detail + tahlil tugmasi (yoki "Qayta tahlil")
+- `/documents/:id` — detail + tahlil tugmasi, reassign (mutaxassis)
 - `/analyses/:id` — natija: ScoreGauge, Bar/Radar chart, kriteriyalar jadvali, highlighted matn, PDF eksport
 - `/criteria` — CRUD
 - `/laws` — qonun yuklash + indekslash
-- `/users` — admin boshqarish (super_admin)
-- `/audit` — audit log (super_admin)
+- `/triage` — kelgan ssenariylarni saralash: ekspertga tayinlash yoki rad etish (**mutaxassis**)
+- `/expert-review`, `/expert-review/:docId` — tayinlangan ssenariylarni mezon bo'yicha baholash (**ekspert**)
+- `/users` — foydalanuvchi/rol boshqaruv (`manage_users` ruxsati)
+- `/usage` — AI sarf statistikasi (super_admin)
+- `/audit` — audit log (`view_audit` ruxsati)
+- `/settings`, `/capacity` — tizim sozlamalari, quvvat monitoringi (super_admin)
 - `/change-password` — parolni o'zgartirish
 
 ## Komponentlar

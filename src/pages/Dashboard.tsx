@@ -5,10 +5,10 @@ import {
 } from "recharts";
 import type { Document } from "@/types";
 import { Link } from "react-router-dom";
-import { RiskBadge } from "@/components/shared/RiskBadge";
 import { formatDate } from "@/lib/utils";
 import { ArrowUpRight, FileText, ShieldCheck, Activity, Film } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { Skeleton, TableSkeleton } from "@/components/shared/Skeleton";
 
 
 export function Dashboard() {
@@ -31,6 +31,7 @@ export function Dashboard() {
 
   const items = docsQ.data || [];
   const s = statsQ.data;
+  const loading = docsQ.isLoading || statsQ.isLoading;
 
   // So'nggi 7 kun trendi — haqiqiy yuklash sanasiga ko'ra
   const trend = Array.from({ length: 7 }, (_, i) => {
@@ -61,15 +62,17 @@ export function Dashboard() {
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-        {stats.map((s) => (
-          <div key={s.label} className="card p-6">
+        {stats.map((stat) => (
+          <div key={stat.label} className="card p-6">
             <div className="flex items-center justify-between mb-5">
-              <div className="text-[12.5px] text-ink-muted">{s.label}</div>
+              <div className="text-[12.5px] text-ink-muted">{stat.label}</div>
               <div className="h-8 w-8 rounded-xl bg-accent-50 text-accent grid place-items-center">
-                <s.icon size={15} strokeWidth={1.75} />
+                <stat.icon size={15} strokeWidth={1.75} />
               </div>
             </div>
-            <div className="font-serif text-[34px] leading-none tabular-nums">{s.value}</div>
+            {loading ? <Skeleton className="h-9 w-16" /> : (
+              <div className="font-serif text-[34px] leading-none tabular-nums">{stat.value}</div>
+            )}
           </div>
         ))}
 
@@ -81,7 +84,13 @@ export function Dashboard() {
               <Film size={15} strokeWidth={1.75} />
             </div>
           </div>
-          {topGenres.length > 0 ? (
+          {loading ? (
+            <div className="space-y-2.5">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-4/5" />
+              <Skeleton className="h-4 w-3/5" />
+            </div>
+          ) : topGenres.length > 0 ? (
             <div className="space-y-2">
               {topGenres.slice(0, 4).map((g) => (
                 <div key={g.genre} className="flex items-center gap-2">
@@ -129,7 +138,7 @@ export function Dashboard() {
             {t("dashboard.all")} <ArrowUpRight size={13} />
           </Link>
         </div>
-        <div className="surface-divider">
+        <div className="surface-divider overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="text-[12px] uppercase tracking-wide text-ink-muted">
@@ -139,7 +148,7 @@ export function Dashboard() {
                 <th></th>
               </tr>
             </thead>
-            <tbody>
+            {docsQ.isLoading ? <TableSkeleton rows={4} cols={4} /> : <tbody>
               {items.slice(0, 6).map((d) => (
                 <tr key={d.id} className="table-row border-t border-ink/[0.05] hover:bg-surface-sunken/50">
                   <td className="px-6 text-[14px] text-ink">
@@ -160,7 +169,7 @@ export function Dashboard() {
               {items.length === 0 && (
                 <tr><td colSpan={4} className="px-6 py-10 text-center text-ink-muted text-sm">{t("common.empty")}</td></tr>
               )}
-            </tbody>
+            </tbody>}
           </table>
         </div>
       </div>

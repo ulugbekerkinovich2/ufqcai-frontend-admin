@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import { useI18n } from "@/lib/i18n";
-import { SlidersHorizontal, Check, Coins, Bot, Wallet, RefreshCw, AlertCircle } from "lucide-react";
+import { SlidersHorizontal, Check, Coins, Bot, Wallet, RefreshCw, AlertCircle, Cpu } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
@@ -95,6 +95,9 @@ export function Settings() {
   const currentModel = modelSetting?.value ?? "gpt-4o";
   const currentModelInfo = findModel(currentModel);
 
+  const providerSetting = settingsList?.find((s) => s.key === "llm_provider");
+  const currentProvider = providerSetting?.value ?? "openai";
+
   const balanceQ = useQuery<BalanceResp>({
     queryKey: ["openai-balance"],
     queryFn: async () => (await api.get<BalanceResp>("/usage/openai-balance")).data,
@@ -125,6 +128,13 @@ export function Settings() {
     onError: () => toast.error(t("common.error")),
   });
 
+  const providerMut = useMutation({
+    mutationFn: async (v: string) =>
+      (await api.put(`/settings/llm_provider`, { value: v })).data,
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-settings"] }); flash(); toast.success(t("settings.saved")); },
+    onError: () => toast.error(t("common.error")),
+  });
+
   return (
     <div className="space-y-7 animate-fade-in">
       <header>
@@ -132,7 +142,49 @@ export function Settings() {
         <h1 className="font-serif text-[24px] leading-tight">{t("settings.title")}</h1>
       </header>
 
+      {/* AI Provider */}
+      <div className="card p-8 max-w-2xl">
+        <div className="flex items-start gap-3 mb-6">
+          <div className="h-10 w-10 rounded-xl bg-accent-50 text-accent grid place-items-center shrink-0">
+            <Cpu size={18} />
+          </div>
+          <div>
+            <h2 className="font-serif text-lg">{t("settings.provider")}</h2>
+            <p className="text-[13px] text-ink-muted mt-0.5">{t("settings.provider_hint")}</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { v: "openai", label: t("settings.provider_openai"), desc: t("settings.provider_openai_desc"), Icon: Bot },
+            { v: "qwen", label: t("settings.provider_qwen"), desc: t("settings.provider_qwen_desc"), Icon: Cpu },
+          ].map(({ v, label, desc, Icon }) => {
+            const active = currentProvider === v;
+            return (
+              <button
+                key={v}
+                onClick={() => providerMut.mutate(v)}
+                disabled={providerMut.isPending}
+                className={cn(
+                  "text-left p-4 rounded-xl border-2 transition",
+                  active ? "text-accent bg-accent-50 border-accent" : "bg-surface border-ink/[0.08] hover:border-ink/20",
+                )}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Icon size={16} />
+                    <span className="font-medium text-[14.5px]">{label}</span>
+                  </div>
+                  {active && <Check size={16} className="shrink-0" />}
+                </div>
+                <div className={cn("text-[12.5px] mt-1", active ? "opacity-80" : "text-ink-muted")}>{desc}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* OpenAI Balance */}
+      {currentProvider === "openai" && (
       <div className="card p-8 max-w-2xl">
         <div className="flex items-start justify-between gap-3 mb-6">
           <div className="flex items-start gap-3">
@@ -185,6 +237,7 @@ export function Settings() {
           </div>
         ) : null}
       </div>
+      )}
 
       {/* Strictness */}
       <div className="card p-8 max-w-2xl">
@@ -229,6 +282,7 @@ export function Settings() {
       </div>
 
       {/* AI Model */}
+      {currentProvider === "openai" ? (
       <div className="card p-8 max-w-2xl">
         <div className="flex items-start gap-3 mb-6">
           <div className="h-10 w-10 rounded-xl bg-accent-50 text-accent grid place-items-center shrink-0">
@@ -297,6 +351,19 @@ export function Settings() {
           ))}
         </div>
       </div>
+      ) : (
+      <div className="card p-8 max-w-2xl">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-accent-50 text-accent grid place-items-center shrink-0">
+            <Cpu size={18} />
+          </div>
+          <div>
+            <h2 className="font-serif text-lg">{t("settings.provider_qwen")}</h2>
+            <p className="text-[13px] text-ink-muted mt-0.5">{t("settings.provider_qwen_desc")}</p>
+          </div>
+        </div>
+      </div>
+      )}
 
       {/* Token limit */}
       <div className="card p-8 max-w-2xl">

@@ -29,6 +29,11 @@ export const useAuth = create<AuthState>()(
       setUser: (u) => set({ user: u }),
       logout: () => set({ accessToken: null, refreshToken: null, user: null }),
     }),
-    { name: "senariy-analizer-auth" },
+    {
+      name: "senariy-analizer-auth",
+      // Refresh token httpOnly cookie'da yashaydi — localStorage'ga YOZILMAYDI (XSS himoyasi).
+      // Faqat qisqa umrli access token va user profili saqlanadi.
+      partialize: (s) => ({ accessToken: s.accessToken, user: s.user }),
+    },
   ),
 );
