@@ -12,7 +12,7 @@
  *   pm2 save && pm2 startup
  */
 
-const PORT = process.env.FRONTEND_PORT || "8004";
+const PORT = process.env.FRONTEND_PORT || "8013";
 const NODE_ENV = process.env.NODE_ENV || "production";
 
 const isDev = NODE_ENV !== "production";
