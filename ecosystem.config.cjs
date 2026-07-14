@@ -32,7 +32,7 @@ module.exports = {
       max_restarts: 10,
       restart_delay: 2000,
       max_memory_restart: "400M",
-      env: { NODE_ENV },
+      env: { NODE_ENV, PORT: String(PORT) },
       error_file: "./logs/frontend.error.log",
       out_file: "./logs/frontend.out.log",
       merge_logs: true,
