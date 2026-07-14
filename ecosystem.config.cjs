@@ -1,5 +1,5 @@
 /**
- * PM2 ecosystem — Senariy Analizer frontend
+ * PM2 ecosystem — Senariy Analizer ADMIN frontend
  *
  * Production'da nginx static serve qilish tavsiya etiladi (deploy/senariy-analizer.nginx).
  * Bu config — staging/preview yoki nginx ishlatilmaydigan muhitlar uchun.
@@ -12,9 +12,8 @@
  *   pm2 save && pm2 startup
  */
 
-const PORT = process.env.FRONTEND_PORT || "8013";
+const PORT = 8015;
 const NODE_ENV = process.env.NODE_ENV || "production";
-
 const isDev = NODE_ENV !== "production";
 
 module.exports = {
@@ -33,11 +32,7 @@ module.exports = {
       max_restarts: 10,
       restart_delay: 2000,
       max_memory_restart: "400M",
-      env: {
-        NODE_ENV,
-        // Production build static serve qilinishidan oldin yaratilgan bo'lishi kerak:
-        //   npm run build
-      },
+      env: { NODE_ENV },
       error_file: "./logs/frontend.error.log",
       out_file: "./logs/frontend.out.log",
       merge_logs: true,
