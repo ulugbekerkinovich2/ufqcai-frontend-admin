@@ -228,6 +228,10 @@ function ExpertReviewDetail({ docId }: { docId: string }) {
     () => criteria.filter((c) => c.is_active && aiResultByName[c.name] && !topAiNames.has(c.name)).length,
     [criteria, aiResultByName, topAiNames],
   );
+  const manualCriteria = useMemo(
+    () => criteria.filter((c) => c.is_active && !aiResultByName[c.name]),
+    [criteria, aiResultByName],
+  );
 
   if (reviewLoading || !doc) {
     return (
@@ -288,59 +292,28 @@ function ExpertReviewDetail({ docId }: { docId: string }) {
           <p className="text-[12.5px] text-ink-subtle">{t("expert.agree_hint")}</p>
         </div>
         <div className="divide-y divide-ink/[0.05]">
-          {criteria.filter((c) => c.is_active).map((c) => {
-            const ai = aiResultByName[c.name];
-            if (ai && !topAiNames.has(c.name)) return null; // eng muhim 5 taga kirmadi — yozuvda bor, ro'yxatda ko'rsatilmaydi
-            if (ai) {
-              const checked = !!agreements[c.name];
-              return (
-                <label
-                  key={c.id}
-                  className={`flex items-start gap-3.5 px-6 py-4 cursor-pointer transition ${checked ? "bg-accent-50/40" : "hover:bg-surface-sunken/40"} ${isSubmitted ? "cursor-default" : ""}`}
-                >
-                  <input
-                    type="checkbox" disabled={isSubmitted}
-                    className="mt-1 h-4 w-4 accent-accent shrink-0 cursor-pointer"
-                    checked={checked}
-                    onChange={(e) => setAgreements((prev) => ({ ...prev, [c.name]: e.target.checked }))}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[13.5px] font-medium text-ink">{c.name}</span>
-                      <RiskBadge level={ai.risk_level} size="sm" />
-                    </div>
-                    {ai.finding && <p className="text-[12.5px] text-ink-muted mt-1 leading-relaxed">{ai.finding}</p>}
-                  </div>
-                </label>
-              );
-            }
-            const it = manualItemFor(c.name);
+          {topAiCriteria.map((c) => {
+            const ai = aiResultByName[c.name]!;
+            const checked = !!agreements[c.name];
             return (
-              <div key={c.id} className="px-6 py-4">
-                <p className="text-[13.5px] font-medium text-ink mb-2">{c.name}</p>
-                <p className="text-[11.5px] text-ink-subtle mb-2">{t("expert.no_ai_result")}</p>
-                <div className="grid grid-cols-3 gap-2">
-                  <select
-                    className="input h-9 text-[13px]" disabled={isSubmitted}
-                    aria-label={`${c.name} — ${t("expert.col_risk")}`}
-                    value={it.risk_level} onChange={(e) => setManualItem(c.name, { risk_level: e.target.value })}
-                  >
-                    {RISK_LEVELS.map((r) => <option key={r} value={r}>{t(`risk.${r}`)}</option>)}
-                  </select>
-                  <input
-                    type="number" min={0} max={100} step={0.5} disabled={isSubmitted}
-                    aria-label={`${c.name} — ${t("expert.col_score")}`}
-                    className="input h-9 text-[13px] font-mono" value={it.score}
-                    onChange={(e) => setManualItem(c.name, { score: e.target.value })}
-                  />
-                  <input
-                    className="input h-9 text-[13px]" disabled={isSubmitted}
-                    aria-label={`${c.name} — ${t("expert.col_comment")}`}
-                    placeholder={t("expert.col_comment")}
-                    value={it.comment} onChange={(e) => setManualItem(c.name, { comment: e.target.value })}
-                  />
+              <label
+                key={c.id}
+                className={`flex items-start gap-3.5 px-6 py-4 cursor-pointer transition ${checked ? "bg-accent-50/40" : "hover:bg-surface-sunken/40"} ${isSubmitted ? "cursor-default" : ""}`}
+              >
+                <input
+                  type="checkbox" disabled={isSubmitted}
+                  className="mt-1 h-4 w-4 accent-accent shrink-0 cursor-pointer"
+                  checked={checked}
+                  onChange={(e) => setAgreements((prev) => ({ ...prev, [c.name]: e.target.checked }))}
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[13.5px] font-medium text-ink">{c.name}</span>
+                    <RiskBadge level={ai.risk_level} size="sm" />
+                  </div>
+                  {ai.finding && <p className="text-[12.5px] text-ink-muted mt-1 leading-relaxed">{ai.finding}</p>}
                 </div>
-              </div>
+              </label>
             );
           })}
         </div>
@@ -350,6 +323,46 @@ function ExpertReviewDetail({ docId }: { docId: string }) {
           </div>
         )}
       </div>
+
+      {/* AI baholay olmagan mezonlar — asosiy ro'yxatdan ajratilgan, oqimni buzmasin */}
+      {manualCriteria.length > 0 && (
+        <div className="card overflow-hidden">
+          <div className="px-6 pt-5 pb-4">
+            <p className="text-[12.5px] uppercase tracking-wide text-ink-muted">{t("expert.manual_title")}</p>
+          </div>
+          <div className="divide-y divide-ink/[0.05]">
+            {manualCriteria.map((c) => {
+              const it = manualItemFor(c.name);
+              return (
+                <div key={c.id} className="px-6 py-4">
+                  <p className="text-[13.5px] font-medium text-ink mb-2">{c.name}</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <select
+                      className="input h-9 text-[13px]" disabled={isSubmitted}
+                      aria-label={`${c.name} — ${t("expert.col_risk")}`}
+                      value={it.risk_level} onChange={(e) => setManualItem(c.name, { risk_level: e.target.value })}
+                    >
+                      {RISK_LEVELS.map((r) => <option key={r} value={r}>{t(`risk.${r}`)}</option>)}
+                    </select>
+                    <input
+                      type="number" min={0} max={100} step={0.5} disabled={isSubmitted}
+                      aria-label={`${c.name} — ${t("expert.col_score")}`}
+                      className="input h-9 text-[13px] font-mono" value={it.score}
+                      onChange={(e) => setManualItem(c.name, { score: e.target.value })}
+                    />
+                    <input
+                      className="input h-9 text-[13px]" disabled={isSubmitted}
+                      aria-label={`${c.name} — ${t("expert.col_comment")}`}
+                      placeholder={t("expert.col_comment")}
+                      value={it.comment} onChange={(e) => setManualItem(c.name, { comment: e.target.value })}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="card p-6 space-y-4">
         <div>
