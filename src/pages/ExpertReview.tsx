@@ -12,6 +12,8 @@ import { RiskBadge } from "@/components/shared/RiskBadge";
 import { ScoreGauge } from "@/components/shared/ScoreGauge";
 
 const RISK_LEVELS: RiskLevel[] = ["None", "Low", "Medium", "High"];
+const RISK_RANK: Record<string, number> = { None: 0, Low: 1, Medium: 2, High: 3 };
+const MAX_AI_FINDINGS = 5;
 
 function ExpertQueue() {
   const { t } = useI18n();
@@ -212,6 +214,21 @@ function ExpertReviewDetail({ docId }: { docId: string }) {
     return map;
   }, [analysisDetail]);
 
+  // AI 40+ mezonni to'liq baholaydi (rasmiy yozuv uchun), lekin ekspertga faqat eng
+  // muhim (yuqori xavfli) 5 tasini checkbox qilib ko'rsatamiz — hammasini ko'rib
+  // chiqish shart emas, faqat diqqatga loyiq topilmalarga e'tibor qaratiladi.
+  const topAiCriteria = useMemo(() => {
+    return criteria
+      .filter((c) => c.is_active && aiResultByName[c.name])
+      .sort((a, b) => (RISK_RANK[aiResultByName[b.name]?.risk_level || "None"] ?? 0) - (RISK_RANK[aiResultByName[a.name]?.risk_level || "None"] ?? 0))
+      .slice(0, MAX_AI_FINDINGS);
+  }, [criteria, aiResultByName]);
+  const topAiNames = useMemo(() => new Set(topAiCriteria.map((c) => c.name)), [topAiCriteria]);
+  const hiddenAiCount = useMemo(
+    () => criteria.filter((c) => c.is_active && aiResultByName[c.name] && !topAiNames.has(c.name)).length,
+    [criteria, aiResultByName, topAiNames],
+  );
+
   if (reviewLoading || !doc) {
     return (
       <div className="space-y-7 animate-fade-in">
@@ -273,6 +290,7 @@ function ExpertReviewDetail({ docId }: { docId: string }) {
         <div className="divide-y divide-ink/[0.05]">
           {criteria.filter((c) => c.is_active).map((c) => {
             const ai = aiResultByName[c.name];
+            if (ai && !topAiNames.has(c.name)) return null; // eng muhim 5 taga kirmadi — yozuvda bor, ro'yxatda ko'rsatilmaydi
             if (ai) {
               const checked = !!agreements[c.name];
               return (
@@ -326,6 +344,11 @@ function ExpertReviewDetail({ docId }: { docId: string }) {
             );
           })}
         </div>
+        {hiddenAiCount > 0 && (
+          <div className="px-6 py-3 text-[11.5px] text-ink-subtle border-t border-ink/[0.05]">
+            {t("expert.hidden_count").replace("{n}", String(hiddenAiCount))}
+          </div>
+        )}
       </div>
 
       <div className="card p-6 space-y-4">
