@@ -57,12 +57,12 @@ describe("Triage", () => {
     await waitFor(() => expect(screen.getByText("Test ssenariy")).toBeInTheDocument());
 
     await user.click(screen.getAllByText("Tayinlash")[0]);
-    const select = await screen.findByLabelText("Ekspertni tanlang", { exact: false }).catch(() => screen.getByRole("combobox"));
-    await user.selectOptions(select, "exp-1");
+    const checkbox = await screen.findByRole("checkbox");
+    await user.click(checkbox);
     await user.click(screen.getAllByText("Tayinlash").at(-1)!);
 
     await waitFor(() =>
-      expect(api.post).toHaveBeenCalledWith("/triage/doc-1/assign", { expert_id: "exp-1" }),
+      expect(api.post).toHaveBeenCalledWith("/triage/doc-1/assign", { expert_ids: ["exp-1"] }),
     );
   });
 

@@ -19,7 +19,7 @@ export function Triage() {
   const { t } = useI18n();
   const qc = useQueryClient();
   const [assignDoc, setAssignDoc] = useState<Document | null>(null);
-  const [selectedExpert, setSelectedExpert] = useState("");
+  const [selectedExperts, setSelectedExperts] = useState<string[]>([]);
   const [rejectDoc, setRejectDoc] = useState<Document | null>(null);
   const [rejectReason, setRejectReason] = useState("");
 
@@ -33,13 +33,17 @@ export function Triage() {
     queryFn: async () => (await api.get<Expert[]>("/triage/experts")).data,
   });
 
+  function toggleExpert(id: string) {
+    setSelectedExperts((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
+
   const assign = useMutation({
     mutationFn: async () =>
-      (await api.post(`/triage/${assignDoc!.id}/assign`, { expert_id: selectedExpert })).data,
+      (await api.post(`/triage/${assignDoc!.id}/assign`, { expert_ids: selectedExperts })).data,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["triage-queue"] });
       setAssignDoc(null);
-      setSelectedExpert("");
+      setSelectedExperts([]);
       toast.success(t("triage.assigned"));
     },
     onError: (e: any) => toast.error(e?.response?.data?.detail || t("common.error")),
@@ -103,7 +107,7 @@ export function Triage() {
                     <td className="py-3 text-[13px] text-ink-muted">{formatDate(d.created_at)}</td>
                     <td className="pr-6 py-3">
                       <div className="flex items-center gap-1 justify-end">
-                        <button onClick={() => setAssignDoc(d)} className="btn-ghost h-8 px-3 text-[12.5px] text-accent">
+                        <button onClick={() => { setAssignDoc(d); setSelectedExperts([]); }} className="btn-ghost h-8 px-3 text-[12.5px] text-accent">
                           <UserCheck size={14} /> {t("triage.assign")}
                         </button>
                         <button onClick={() => setRejectDoc(d)} className="btn-ghost h-8 px-3 text-[12.5px] text-risk-high-fg">
@@ -131,17 +135,24 @@ export function Triage() {
             <form onSubmit={(e) => { e.preventDefault(); assign.mutate(); }} className="p-7 space-y-4">
               <p className="text-[13px] text-ink-muted">{assignDoc.title}</p>
               <div>
-                <label className="label">{t("triage.select_expert")}</label>
-                <select className="input" required value={selectedExpert} onChange={(e) => setSelectedExpert(e.target.value)}>
-                  <option value="" disabled>{t("common.select")}</option>
+                <label className="label mb-2 block">{t("triage.select_expert")}</label>
+                <p className="text-[11.5px] text-ink-subtle mb-2">{t("triage.select_expert_hint")}</p>
+                <div className="max-h-56 overflow-y-auto rounded-xl border border-ink/[0.08] divide-y divide-ink/[0.06]">
                   {experts.map((ex) => (
-                    <option key={ex.id} value={ex.id}>{ex.full_name} — {ex.email}</option>
+                    <label key={ex.id} className="flex items-center gap-3 px-3.5 py-2.5 cursor-pointer hover:bg-surface-sunken/50">
+                      <input
+                        type="checkbox" className="h-4 w-4 accent-accent shrink-0"
+                        checked={selectedExperts.includes(ex.id)}
+                        onChange={() => toggleExpert(ex.id)}
+                      />
+                      <span className="text-[13px] text-ink">{ex.full_name} <span className="text-ink-subtle">— {ex.email}</span></span>
+                    </label>
                   ))}
-                </select>
+                </div>
               </div>
               <div className="flex gap-2 pt-2">
                 <button type="button" onClick={() => setAssignDoc(null)} className="btn-secondary flex-1">{t("common.cancel")}</button>
-                <button disabled={assign.isPending || !selectedExpert} className="btn-primary flex-1">
+                <button disabled={assign.isPending || selectedExperts.length === 0} className="btn-primary flex-1">
                   {assign.isPending ? t("common.loading") : t("triage.assign")}
                 </button>
               </div>

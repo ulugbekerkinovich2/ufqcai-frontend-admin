@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
@@ -22,7 +22,7 @@ export function DocumentDetail() {
   const { user } = useAuth();
   const [analyzeErr, setAnalyzeErr] = useState("");
   const [reassignOpen, setReassignOpen] = useState(false);
-  const [reassignExpert, setReassignExpert] = useState("");
+  const [reassignExperts, setReassignExperts] = useState<string[]>([]);
 
   const isMutaxassis = ["mutaxassis", "admin", "super_admin"].includes(user?.role ?? "");
 
@@ -37,12 +37,27 @@ export function DocumentDetail() {
     enabled: isMutaxassis && reassignOpen,
   });
 
+  const { data: currentExperts = [] } = useQuery({
+    queryKey: ["doc-experts", id],
+    queryFn: async () => (await api.get<Expert[]>(`/triage/${id}/experts`)).data,
+    enabled: isMutaxassis && reassignOpen,
+  });
+
+  useEffect(() => {
+    if (reassignOpen) setReassignExperts(currentExperts.map((e) => e.id));
+  }, [reassignOpen, currentExperts]);
+
+  function toggleReassignExpert(expId: string) {
+    setReassignExperts((prev) => (prev.includes(expId) ? prev.filter((x) => x !== expId) : [...prev, expId]));
+  }
+
   const reassign = useMutation({
-    mutationFn: async () => (await api.post(`/triage/${id}/reassign`, { expert_id: reassignExpert })).data,
+    mutationFn: async () => (await api.post(`/triage/${id}/reassign`, { expert_ids: reassignExperts })).data,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["doc", id] });
+      qc.invalidateQueries({ queryKey: ["doc-experts", id] });
       setReassignOpen(false);
-      setReassignExpert("");
+      setReassignExperts([]);
       toast.success(t("triage.assigned"));
     },
     onError: (e: any) => toast.error(e?.response?.data?.detail || t("common.error")),
@@ -130,7 +145,7 @@ export function DocumentDetail() {
         </div>
       </header>
 
-      {d.review_status === "assigned" && isMutaxassis && (
+      {(d.review_status === "assigned" || d.review_status === "evaluated") && isMutaxassis && (
         <div className="card p-5 flex items-center justify-between gap-4">
           <p className="text-[13px] text-ink-muted">{t("triage.reassign_hint")}</p>
           <button onClick={() => setReassignOpen(true)} className="btn-secondary shrink-0">
@@ -148,17 +163,24 @@ export function DocumentDetail() {
             </div>
             <form onSubmit={(e) => { e.preventDefault(); reassign.mutate(); }} className="p-7 space-y-4">
               <div>
-                <label className="label">{t("triage.select_expert")}</label>
-                <select className="input" required value={reassignExpert} onChange={(e) => setReassignExpert(e.target.value)}>
-                  <option value="" disabled>{t("common.select")}</option>
+                <label className="label mb-2 block">{t("triage.select_expert")}</label>
+                <p className="text-[11.5px] text-ink-subtle mb-2">{t("triage.select_expert_hint")}</p>
+                <div className="max-h-56 overflow-y-auto rounded-xl border border-ink/[0.08] divide-y divide-ink/[0.06]">
                   {experts.map((ex) => (
-                    <option key={ex.id} value={ex.id}>{ex.full_name} — {ex.email}</option>
+                    <label key={ex.id} className="flex items-center gap-3 px-3.5 py-2.5 cursor-pointer hover:bg-surface-sunken/50">
+                      <input
+                        type="checkbox" className="h-4 w-4 accent-accent shrink-0"
+                        checked={reassignExperts.includes(ex.id)}
+                        onChange={() => toggleReassignExpert(ex.id)}
+                      />
+                      <span className="text-[13px] text-ink">{ex.full_name} <span className="text-ink-subtle">— {ex.email}</span></span>
+                    </label>
                   ))}
-                </select>
+                </div>
               </div>
               <div className="flex gap-2 pt-2">
                 <button type="button" onClick={() => setReassignOpen(false)} className="btn-secondary flex-1">{t("common.cancel")}</button>
-                <button disabled={reassign.isPending || !reassignExpert} className="btn-primary flex-1">
+                <button disabled={reassign.isPending || reassignExperts.length === 0} className="btn-primary flex-1">
                   {reassign.isPending ? t("common.loading") : t("triage.reassign")}
                 </button>
               </div>
