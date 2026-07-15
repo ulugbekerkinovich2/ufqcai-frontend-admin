@@ -25,6 +25,7 @@ export interface ExpertReviewItem {
   risk_level?: RiskLevel;
   score?: number | string;
   comment?: string;
+  agrees_with_ai?: boolean | null;
 }
 
 export interface ExpertReview {

@@ -113,45 +113,73 @@ function ExpertReviewDetail({ docId }: { docId: string }) {
 
   const [verdict, setVerdict] = useState<string>("");
   const [comment, setComment] = useState("");
-  const [items, setItems] = useState<Record<string, { risk_level: string; score: string; comment: string }>>({});
+  // AI natijasi bor mezonlar uchun — ekspert faqat "qo'shilaman" belgilaydi (tez baholash,
+  // aktyor/aktrisa kabi ekspertlar har mezon uchun qo'lda yozib o'tirmasin).
+  const [agreements, setAgreements] = useState<Record<string, boolean>>({});
+  // AI natijasi yo'q (kamdan-kam) mezonlar uchun — eski qo'lda kiritish fallback.
+  const [manualItems, setManualItems] = useState<Record<string, { risk_level: string; score: string; comment: string }>>({});
 
   useEffect(() => {
     if (!review) return;
     setVerdict(review.overall_verdict || "");
     setComment(review.overall_comment || "");
-    const byName: Record<string, { risk_level: string; score: string; comment: string }> = {};
+    const agreed: Record<string, boolean> = {};
+    const manual: Record<string, { risk_level: string; score: string; comment: string }> = {};
     for (const it of review.items) {
-      byName[it.criterion_name || ""] = {
-        risk_level: it.risk_level || "None",
-        score: it.score != null ? String(it.score) : "",
-        comment: it.comment || "",
-      };
+      const name = it.criterion_name || "";
+      if (it.agrees_with_ai != null) {
+        agreed[name] = it.agrees_with_ai;
+      } else {
+        manual[name] = {
+          risk_level: it.risk_level || "None",
+          score: it.score != null ? String(it.score) : "",
+          comment: it.comment || "",
+        };
+      }
     }
-    setItems(byName);
+    setAgreements(agreed);
+    setManualItems(manual);
   }, [review]);
 
   const isSubmitted = review?.status === "submitted";
 
-  function itemFor(name: string) {
-    return items[name] || { risk_level: "None", score: "", comment: "" };
+  function manualItemFor(name: string) {
+    return manualItems[name] || { risk_level: "None", score: "", comment: "" };
   }
-  function setItem(name: string, patch: Partial<{ risk_level: string; score: string; comment: string }>) {
-    setItems((prev) => ({ ...prev, [name]: { ...itemFor(name), ...patch } }));
+  function setManualItem(name: string, patch: Partial<{ risk_level: string; score: string; comment: string }>) {
+    setManualItems((prev) => ({ ...prev, [name]: { ...manualItemFor(name), ...patch } }));
   }
 
   function buildPayload() {
     return {
       overall_verdict: verdict || null,
       overall_comment: comment || null,
-      items: criteria.map((c) => ({
-        criterion_id: c.id,
-        criterion_name: c.name,
-        risk_level: itemFor(c.name).risk_level,
-        score: itemFor(c.name).score ? Number(itemFor(c.name).score) : null,
-        comment: itemFor(c.name).comment || null,
-      })),
+      items: criteria.map((c) => {
+        const ai = aiResultByName[c.name];
+        if (ai) {
+          return {
+            criterion_id: c.id,
+            criterion_name: c.name,
+            risk_level: ai.risk_level || null,
+            score: ai.score != null ? Number(ai.score) : null,
+            comment: null,
+            agrees_with_ai: agreements[c.name] ?? false,
+          };
+        }
+        const m = manualItemFor(c.name);
+        return {
+          criterion_id: c.id,
+          criterion_name: c.name,
+          risk_level: m.risk_level,
+          score: m.score ? Number(m.score) : null,
+          comment: m.comment || null,
+          agrees_with_ai: null,
+        };
+      }),
     };
   }
+
+  const canSubmit = !!verdict && comment.trim().length > 0;
 
   const saveDraft = useMutation({
     mutationFn: async () => (await api.put(`/expert/${docId}/review`, buildPayload())).data,
@@ -238,70 +266,65 @@ function ExpertReviewDetail({ docId }: { docId: string }) {
       )}
 
       <div className="card overflow-hidden">
-        <div className="px-6 pt-5 pb-1 flex items-center gap-4 text-[11px] text-ink-subtle">
-          <span className="uppercase tracking-wide">{t("expert.col_criterion")}</span>
-          <span className="ml-auto uppercase tracking-wide flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-ink-faint" /> {t("expert.legend_ai")}
-          </span>
-          <span className="uppercase tracking-wide flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" /> {t("expert.legend_manual")}
-          </span>
+        <div className="px-6 pt-5 pb-4">
+          <p className="text-[12.5px] uppercase tracking-wide text-ink-muted mb-0.5">{t("expert.agree_title")}</p>
+          <p className="text-[12.5px] text-ink-subtle">{t("expert.agree_hint")}</p>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="text-[12px] uppercase tracking-wide text-ink-muted">
-                <th className="text-left font-medium px-6 py-3">{t("expert.col_criterion")}</th>
-                <th className="text-left font-medium py-3 w-36 bg-surface-sunken/40">{t("expert.col_ai")}</th>
-                <th className="text-left font-medium py-3 w-40 border-l-2 border-accent/20 pl-4">{t("expert.col_risk")}</th>
-                <th className="text-left font-medium py-3 w-24">{t("expert.col_score")}</th>
-                <th className="text-left font-medium py-3">{t("expert.col_comment")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {criteria.filter((c) => c.is_active).map((c) => {
-                const ai = aiResultByName[c.name];
-                const it = itemFor(c.name);
-                return (
-                  <tr key={c.id} className="border-t border-ink/[0.05]">
-                    <td className="px-6 py-3 text-[13.5px] text-ink font-medium">{c.name}</td>
-                    <td className="py-3 bg-surface-sunken/40">
-                      {ai ? (
-                        <div className="flex items-center gap-2">
-                          <RiskBadge level={ai.risk_level} size="sm" />
-                          {ai.score != null && <span className="text-[12px] text-ink-subtle tabular-nums">{ai.score}</span>}
-                        </div>
-                      ) : <span className="text-ink-subtle text-[12px]">—</span>}
-                    </td>
-                    <td className="py-3 border-l-2 border-accent/20 pl-4">
-                      <select
-                        className="input h-9 text-[13px]" disabled={isSubmitted}
-                        aria-label={`${c.name} — ${t("expert.col_risk")}`}
-                        value={it.risk_level} onChange={(e) => setItem(c.name, { risk_level: e.target.value })}
-                      >
-                        {RISK_LEVELS.map((r) => <option key={r} value={r}>{t(`risk.${r}`)}</option>)}
-                      </select>
-                    </td>
-                    <td className="py-3">
-                      <input
-                        type="number" min={0} max={100} step={0.5} disabled={isSubmitted}
-                        aria-label={`${c.name} — ${t("expert.col_score")}`}
-                        className="input h-9 text-[13px] font-mono" value={it.score}
-                        onChange={(e) => setItem(c.name, { score: e.target.value })}
-                      />
-                    </td>
-                    <td className="py-3 pr-6">
-                      <input
-                        className="input h-9 text-[13px]" disabled={isSubmitted}
-                        aria-label={`${c.name} — ${t("expert.col_comment")}`}
-                        value={it.comment} onChange={(e) => setItem(c.name, { comment: e.target.value })}
-                      />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="divide-y divide-ink/[0.05]">
+          {criteria.filter((c) => c.is_active).map((c) => {
+            const ai = aiResultByName[c.name];
+            if (ai) {
+              const checked = !!agreements[c.name];
+              return (
+                <label
+                  key={c.id}
+                  className={`flex items-start gap-3.5 px-6 py-4 cursor-pointer transition ${checked ? "bg-accent-50/40" : "hover:bg-surface-sunken/40"} ${isSubmitted ? "cursor-default" : ""}`}
+                >
+                  <input
+                    type="checkbox" disabled={isSubmitted}
+                    className="mt-1 h-4 w-4 accent-accent shrink-0 cursor-pointer"
+                    checked={checked}
+                    onChange={(e) => setAgreements((prev) => ({ ...prev, [c.name]: e.target.checked }))}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[13.5px] font-medium text-ink">{c.name}</span>
+                      <RiskBadge level={ai.risk_level} size="sm" />
+                    </div>
+                    {ai.finding && <p className="text-[12.5px] text-ink-muted mt-1 leading-relaxed">{ai.finding}</p>}
+                  </div>
+                </label>
+              );
+            }
+            const it = manualItemFor(c.name);
+            return (
+              <div key={c.id} className="px-6 py-4">
+                <p className="text-[13.5px] font-medium text-ink mb-2">{c.name}</p>
+                <p className="text-[11.5px] text-ink-subtle mb-2">{t("expert.no_ai_result")}</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <select
+                    className="input h-9 text-[13px]" disabled={isSubmitted}
+                    aria-label={`${c.name} — ${t("expert.col_risk")}`}
+                    value={it.risk_level} onChange={(e) => setManualItem(c.name, { risk_level: e.target.value })}
+                  >
+                    {RISK_LEVELS.map((r) => <option key={r} value={r}>{t(`risk.${r}`)}</option>)}
+                  </select>
+                  <input
+                    type="number" min={0} max={100} step={0.5} disabled={isSubmitted}
+                    aria-label={`${c.name} — ${t("expert.col_score")}`}
+                    className="input h-9 text-[13px] font-mono" value={it.score}
+                    onChange={(e) => setManualItem(c.name, { score: e.target.value })}
+                  />
+                  <input
+                    className="input h-9 text-[13px]" disabled={isSubmitted}
+                    aria-label={`${c.name} — ${t("expert.col_comment")}`}
+                    placeholder={t("expert.col_comment")}
+                    value={it.comment} onChange={(e) => setManualItem(c.name, { comment: e.target.value })}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -320,16 +343,22 @@ function ExpertReviewDetail({ docId }: { docId: string }) {
           </div>
         </div>
         <div>
-          <label className="label">{t("expert.overall_comment")}</label>
+          <label className="label">
+            {t("expert.overall_comment")} <span className="text-risk-high-fg">*</span>
+          </label>
           <textarea className="textarea" rows={4} disabled={isSubmitted} value={comment}
+            placeholder={t("expert.overall_comment_placeholder")}
             onChange={(e) => setComment(e.target.value)} />
+          {!isSubmitted && !comment.trim() && (
+            <p className="text-[11.5px] text-risk-high-fg mt-1">{t("expert.comment_required")}</p>
+          )}
         </div>
         {!isSubmitted && (
           <div className="flex gap-2 pt-1">
             <button onClick={() => saveDraft.mutate()} disabled={saveDraft.isPending} className="btn-secondary flex-1">
               <Save size={15} /> {saveDraft.isPending ? t("common.loading") : t("expert.save_draft")}
             </button>
-            <button onClick={() => submit.mutate()} disabled={submit.isPending || !verdict} className="btn-primary flex-1">
+            <button onClick={() => submit.mutate()} disabled={submit.isPending || !canSubmit} className="btn-primary flex-1">
               {submit.isPending ? t("common.loading") : t("expert.submit")}
             </button>
           </div>
