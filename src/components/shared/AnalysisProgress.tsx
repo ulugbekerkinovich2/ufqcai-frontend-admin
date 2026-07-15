@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Loader2, FileSearch, BookOpen, Brain, Save } from "lucide-react";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { CheckCircle2, Loader2, FileSearch, BookOpen, Brain, Save, Square } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { api } from "@/api/client";
+import { useAuth } from "@/store/auth";
+import { confirm } from "@/components/shared/ConfirmDialog";
+import { toast } from "@/lib/toast";
 
 interface Step {
   key: string;
@@ -32,6 +35,8 @@ function fmtTime(seconds: number): string {
 export function AnalysisProgress({ startedAt, analysisId }: { startedAt?: string; analysisId?: string }) {
   const { t } = useI18n();
   const qc = useQueryClient();
+  const { user } = useAuth();
+  const canStop = ["admin", "super_admin"].includes(user?.role ?? "");
   const [elapsed, setElapsed] = useState(0);
   // Smooth display percent — animates toward real percent, never jumps backward
   const [displayPct, setDisplayPct] = useState(0);
@@ -135,6 +140,25 @@ export function AnalysisProgress({ startedAt, analysisId }: { startedAt?: string
   const remaining = Math.max(0, avg - elapsed);
   const overrun = elapsed > avg && percent < 90;
 
+  const stop = useMutation({
+    mutationFn: async () => (await api.post(`/analyses/${analysisId}/stop`)).data,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["analysis-status", analysisId] });
+      qc.invalidateQueries({ queryKey: ["analysis", analysisId] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.detail || t("common.error")),
+  });
+
+  async function handleStop() {
+    const ok = await confirm({
+      title: t("progress.stop_confirm_title"),
+      message: t("progress.stop_confirm_message"),
+      confirmLabel: t("progress.stop"),
+      danger: true,
+    });
+    if (ok) stop.mutate();
+  }
+
   return (
     <div className="card p-10 animate-fade-in">
       <div className="text-center mb-8">
@@ -185,6 +209,17 @@ export function AnalysisProgress({ startedAt, analysisId }: { startedAt?: string
               {message}
             </p>
           </div>
+        )}
+
+        {canStop && (
+          <button
+            onClick={handleStop}
+            disabled={stop.isPending}
+            className="btn-ghost h-8 px-3 text-[12px] text-risk-high-fg mt-4 mx-auto"
+          >
+            <Square size={12} fill="currentColor" />
+            {stop.isPending ? t("common.loading") : t("progress.stop")}
+          </button>
         )}
       </div>
 
