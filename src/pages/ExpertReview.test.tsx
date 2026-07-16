@@ -17,6 +17,11 @@ const DOC = {
 };
 const CRITERION = { id: "crit-1", name: "Zo'ravonlik", ai_instruction: "x", weight: 1, is_active: true, version: 1, created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z" };
 const REVIEW = { id: "rev-1", document_id: "doc-1", expert_id: "exp-1", status: "draft", items: [] };
+const ANALYSIS = { id: "an-1", document_id: "doc-1", status: "completed", overall_risk: "High", created_at: "2026-01-01T12:00:00Z" };
+const ANALYSIS_DETAIL = {
+  ...ANALYSIS,
+  results: [{ id: "res-1", criterion_id: "crit-1", criterion_name: "Zo'ravonlik", risk_level: "High", score: 70, finding: "Jiddiy zo'ravonlik sahnalari bor." }],
+};
 
 function mockGet(routes: Record<string, unknown>) {
   vi.mocked(api.get).mockImplementation((url: string) => {
@@ -54,10 +59,11 @@ describe("ExpertReview detail", () => {
     vi.mocked(api.post).mockReset();
   });
 
-  it("renders the criteria form and saves a draft", async () => {
+  it("renders the AI findings checklist and saves a draft", async () => {
     const user = userEvent.setup();
     mockGet({
-      "/documents/doc-1/analyses": [],
+      "/documents/doc-1/analyses": [ANALYSIS],
+      "/analyses/an-1": ANALYSIS_DETAIL,
       "/documents/doc-1": DOC,
       "/criteria": [CRITERION],
       "/expert/doc-1/review": REVIEW,
@@ -74,14 +80,15 @@ describe("ExpertReview detail", () => {
     await waitFor(() =>
       expect(api.put).toHaveBeenCalledWith("/expert/doc-1/review", expect.objectContaining({
         overall_verdict: "approved",
-        items: [expect.objectContaining({ criterion_id: "crit-1", criterion_name: "Zo'ravonlik" })],
+        items: [expect.objectContaining({ criterion_id: "crit-1", criterion_name: "Zo'ravonlik", risk_level: "High" })],
       })),
     );
   });
 
   it("disables the submit button until a verdict is chosen", async () => {
     mockGet({
-      "/documents/doc-1/analyses": [],
+      "/documents/doc-1/analyses": [ANALYSIS],
+      "/analyses/an-1": ANALYSIS_DETAIL,
       "/documents/doc-1": DOC,
       "/criteria": [CRITERION],
       "/expert/doc-1/review": REVIEW,

@@ -214,12 +214,12 @@ function ExpertReviewDetail({ docId }: { docId: string }) {
     return map;
   }, [analysisDetail]);
 
-  // AI 40+ mezonni to'liq baholaydi (rasmiy yozuv uchun), lekin ekspertga faqat eng
-  // muhim (yuqori xavfli) 5 tasini checkbox qilib ko'rsatamiz — hammasini ko'rib
-  // chiqish shart emas, faqat diqqatga loyiq topilmalarga e'tibor qaratiladi.
+  // AI 40+ mezonni to'liq baholaydi (rasmiy yozuv uchun), lekin ekspertga faqat FAQAT
+  // "Yuqori" xavfli topilmalarni (maksimal 5 tasini) checkbox qilib ko'rsatamiz —
+  // O'rta/Past/Yo'q darajalar diqqatga arzimaydi, ro'yxatga chiqmaydi.
   const topAiCriteria = useMemo(() => {
     return criteria
-      .filter((c) => c.is_active && aiResultByName[c.name])
+      .filter((c) => c.is_active && aiResultByName[c.name]?.risk_level === "High")
       .sort((a, b) => (RISK_RANK[aiResultByName[b.name]?.risk_level || "None"] ?? 0) - (RISK_RANK[aiResultByName[a.name]?.risk_level || "None"] ?? 0))
       .slice(0, MAX_AI_FINDINGS);
   }, [criteria, aiResultByName]);
@@ -227,10 +227,6 @@ function ExpertReviewDetail({ docId }: { docId: string }) {
   const hiddenAiCount = useMemo(
     () => criteria.filter((c) => c.is_active && aiResultByName[c.name] && !topAiNames.has(c.name)).length,
     [criteria, aiResultByName, topAiNames],
-  );
-  const manualCriteria = useMemo(
-    () => criteria.filter((c) => c.is_active && !aiResultByName[c.name]),
-    [criteria, aiResultByName],
   );
 
   if (reviewLoading || !doc) {
@@ -324,45 +320,6 @@ function ExpertReviewDetail({ docId }: { docId: string }) {
         )}
       </div>
 
-      {/* AI baholay olmagan mezonlar — asosiy ro'yxatdan ajratilgan, oqimni buzmasin */}
-      {manualCriteria.length > 0 && (
-        <div className="card overflow-hidden">
-          <div className="px-6 pt-5 pb-4">
-            <p className="text-[12.5px] uppercase tracking-wide text-ink-muted">{t("expert.manual_title")}</p>
-          </div>
-          <div className="divide-y divide-ink/[0.05]">
-            {manualCriteria.map((c) => {
-              const it = manualItemFor(c.name);
-              return (
-                <div key={c.id} className="px-6 py-4">
-                  <p className="text-[13.5px] font-medium text-ink mb-2">{c.name}</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    <select
-                      className="input h-9 text-[13px]" disabled={isSubmitted}
-                      aria-label={`${c.name} — ${t("expert.col_risk")}`}
-                      value={it.risk_level} onChange={(e) => setManualItem(c.name, { risk_level: e.target.value })}
-                    >
-                      {RISK_LEVELS.map((r) => <option key={r} value={r}>{t(`risk.${r}`)}</option>)}
-                    </select>
-                    <input
-                      type="number" min={0} max={100} step={0.5} disabled={isSubmitted}
-                      aria-label={`${c.name} — ${t("expert.col_score")}`}
-                      className="input h-9 text-[13px] font-mono" value={it.score}
-                      onChange={(e) => setManualItem(c.name, { score: e.target.value })}
-                    />
-                    <input
-                      className="input h-9 text-[13px]" disabled={isSubmitted}
-                      aria-label={`${c.name} — ${t("expert.col_comment")}`}
-                      placeholder={t("expert.col_comment")}
-                      value={it.comment} onChange={(e) => setManualItem(c.name, { comment: e.target.value })}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       <div className="card p-6 space-y-4">
         <div>
