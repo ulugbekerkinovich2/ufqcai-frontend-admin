@@ -223,6 +223,7 @@ export function DocumentDetail() {
                 <th className="text-left font-medium py-3">{t("common.status")}</th>
                 <th className="text-left font-medium py-3">{t("expert.col_risk")}</th>
                 <th className="text-left font-medium py-3">{t("analysis.score")}</th>
+                <th className="text-left font-medium py-3">{t("analysis.model")}</th>
                 <th className="py-3"></th>
               </tr>
             </thead>
@@ -255,6 +256,7 @@ export function DocumentDetail() {
                     </td>
                     <td>{a.overall_risk ? <RiskBadge level={a.overall_risk} /> : <span className="text-ink-subtle text-sm">—</span>}</td>
                     <td className="text-[14px] font-serif tabular-nums">{a.overall_score?.toString() || "—"}</td>
+                    <td className="text-[12.5px] text-ink-muted">{a.model_used || "—"}</td>
                     <td className="pr-6 text-right">
                       <Link to={`/analyses/${a.id}`} className="btn-ghost h-8 px-2.5 text-[12.5px]">
                         <Eye size={14} /> {t("common.view")}
@@ -264,7 +266,7 @@ export function DocumentDetail() {
                 );
               })}
               {history.length === 0 && (
-                <tr><td colSpan={5} className="px-6 py-10 text-center text-ink-muted text-sm">{t("common.empty")}</td></tr>
+                <tr><td colSpan={6} className="px-6 py-10 text-center text-ink-muted text-sm">{t("common.empty")}</td></tr>
               )}
             </tbody>
           </table>
