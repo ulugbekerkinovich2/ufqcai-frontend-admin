@@ -131,6 +131,7 @@ export interface Ariza {
   own_funding_amount?: number | string;
   requested_grant_amount?: number | string;
   total_budget?: number | string;
+  synopsis_document_id?: string;
   literary_screenplay_document_id?: string;
   registration_note?: string;
   submitted_at?: string;
@@ -151,15 +152,22 @@ export interface ArizaAttachment {
   uploaded_at: string;
 }
 
+export interface ArizaScoreItem {
+  id: string;
+  criterion_key: string;
+  max_points: number | string;
+  awarded_points?: number | string;
+}
+
 export interface ArizaScore {
   id: string;
   ariza_id: string;
   member_id: string;
-  vote?: "for" | "against" | "abstain";
   score?: number | string;
   comment?: string;
   status: "draft" | "submitted";
   submitted_at?: string;
+  items: ArizaScoreItem[];
 }
 
 export type RejissorlikSmetaStatus =

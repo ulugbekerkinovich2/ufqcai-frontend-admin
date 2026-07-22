@@ -165,6 +165,7 @@ export function Tanlov() {
                   <option value="qisqa_metrajli">{t("tender.film_type_qisqa_metrajli")}</option>
                   <option value="hujjatli">{t("tender.film_type_hujjatli")}</option>
                   <option value="animatsion">{t("tender.film_type_animatsion")}</option>
+                  <option value="ijtimoiy_video">{t("tender.film_type_ijtimoiy_video")}</option>
                 </select>
               </div>
               <div>

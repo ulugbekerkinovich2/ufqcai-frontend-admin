@@ -479,6 +479,18 @@ const UZ: Record<string, string> = {
   "tender.smeta_status_pending_komissiya": "Komissiya kutilmoqda",
   "tender.smeta_status_approved": "Tasdiqlangan",
   "tender.smeta_status_rejected": "Rad etilgan",
+  "tender.film_type_ijtimoiy_video": "Ijtimoiy video",
+  "tender.rubric_title": "Baholash mezonlari (100 ball)",
+  "tender.total_score": "Jami ball",
+  "tender.recommend_hint": "70+ ball — davlat buyurtmasiga tavsiya etilishi mumkin",
+  "tender.criterion_goya_dolzarbligi": "G'oyaning dolzarbligi",
+  "tender.criterion_sinopsis_sifati": "Sinopsis sifati",
+  "tender.criterion_milliy_qadriyat": "Milliy qadriyatlarga muvofiqligi",
+  "tender.criterion_tarixiy_faktologik": "Tarixiy va faktologik aniqligi",
+  "tender.criterion_ijodiy_yondashuv": "Ijodiy yondashuv",
+  "tender.criterion_tomoshabinlarga_tasiri": "Tomoshabinlarga ta'siri",
+  "tender.criterion_ishlab_chiqarish_imkoniyatlari": "Ishlab chiqarish imkoniyatlari",
+  "tender.criterion_moliyaviy_asoslanganligi": "Moliyaviy asoslanganligi",
 };
 
 const RU: Record<string, string> = {
@@ -938,6 +950,18 @@ const RU: Record<string, string> = {
   "tender.smeta_status_pending_komissiya": "Ожидает комиссию",
   "tender.smeta_status_approved": "Утверждено",
   "tender.smeta_status_rejected": "Отклонено",
+  "tender.film_type_ijtimoiy_video": "Социальное видео",
+  "tender.rubric_title": "Критерии оценки (100 баллов)",
+  "tender.total_score": "Итого баллов",
+  "tender.recommend_hint": "70+ баллов — можно рекомендовать для госзаказа",
+  "tender.criterion_goya_dolzarbligi": "Актуальность идеи",
+  "tender.criterion_sinopsis_sifati": "Качество синопсиса",
+  "tender.criterion_milliy_qadriyat": "Соответствие национальным ценностям",
+  "tender.criterion_tarixiy_faktologik": "Историческая и фактическая точность",
+  "tender.criterion_ijodiy_yondashuv": "Творческий подход",
+  "tender.criterion_tomoshabinlarga_tasiri": "Воздействие на зрителя",
+  "tender.criterion_ishlab_chiqarish_imkoniyatlari": "Производственные возможности",
+  "tender.criterion_moliyaviy_asoslanganligi": "Финансовая обоснованность",
 };
 
 const EN: Record<string, string> = {
@@ -1397,6 +1421,18 @@ const EN: Record<string, string> = {
   "tender.smeta_status_pending_komissiya": "Awaiting jury",
   "tender.smeta_status_approved": "Approved",
   "tender.smeta_status_rejected": "Rejected",
+  "tender.film_type_ijtimoiy_video": "Social video",
+  "tender.rubric_title": "Scoring criteria (100 points)",
+  "tender.total_score": "Total score",
+  "tender.recommend_hint": "70+ points — may be recommended for state funding",
+  "tender.criterion_goya_dolzarbligi": "Idea relevance",
+  "tender.criterion_sinopsis_sifati": "Synopsis quality",
+  "tender.criterion_milliy_qadriyat": "National values compliance",
+  "tender.criterion_tarixiy_faktologik": "Historical/factual accuracy",
+  "tender.criterion_ijodiy_yondashuv": "Creative approach",
+  "tender.criterion_tomoshabinlarga_tasiri": "Audience impact",
+  "tender.criterion_ishlab_chiqarish_imkoniyatlari": "Production feasibility",
+  "tender.criterion_moliyaviy_asoslanganligi": "Financial justification",
 };
 
 const MESSAGES: Record<Lang, Record<string, string>> = { uz: UZ, ru: RU, en: EN };

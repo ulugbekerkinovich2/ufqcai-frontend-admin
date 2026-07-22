@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import type { Ariza, ArizaScore, Tanlov as TanlovT } from "@/types";
-import { Gavel, ArrowUpRight, ArrowLeft, Save, CheckCircle2, ThumbsUp, ThumbsDown, Minus } from "lucide-react";
+import { Gavel, ArrowUpRight, ArrowLeft, Save, CheckCircle2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "@/lib/toast";
 import { Skeleton, TableSkeleton } from "@/components/shared/Skeleton";
@@ -75,33 +75,38 @@ function ArizaScoreForm({ arizaId }: { arizaId: string }) {
     queryFn: async () => (await api.get<ArizaScore>(`/tender/arizalar/${arizaId}/score`)).data,
   });
 
-  const [vote, setVote] = useState<string>("");
-  const [scoreVal, setScoreVal] = useState("");
+  const [points, setPoints] = useState<Record<string, string>>({});
   const [comment, setComment] = useState("");
 
   useEffect(() => {
     if (!score) return;
-    setVote(score.vote || "");
-    setScoreVal(score.score != null ? String(score.score) : "");
+    const p: Record<string, string> = {};
+    for (const it of score.items) p[it.criterion_key] = it.awarded_points != null ? String(it.awarded_points) : "";
+    setPoints(p);
     setComment(score.comment || "");
   }, [score]);
 
   const isSubmitted = score?.status === "submitted";
+  const total = (score?.items || []).reduce((sum, it) => sum + Number(points[it.criterion_key] || 0), 0);
+  const allFilled = (score?.items || []).every((it) => points[it.criterion_key] !== "" && points[it.criterion_key] !== undefined);
+
+  function buildItems() {
+    return (score?.items || []).map((it) => ({
+      criterion_key: it.criterion_key,
+      awarded_points: points[it.criterion_key] === "" ? null : Number(points[it.criterion_key]),
+    }));
+  }
 
   const saveDraft = useMutation({
     mutationFn: async () =>
-      (await api.put(`/tender/arizalar/${arizaId}/score`, {
-        vote: vote || null, score: scoreVal ? Number(scoreVal) : null, comment: comment || null,
-      })).data,
+      (await api.put(`/tender/arizalar/${arizaId}/score`, { comment: comment || null, items: buildItems() })).data,
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["ariza-score", arizaId] }); toast.success(t("tender.draft_saved")); },
     onError: (e: any) => toast.error(e?.response?.data?.detail || t("common.error")),
   });
 
   const submit = useMutation({
     mutationFn: async () => {
-      await api.put(`/tender/arizalar/${arizaId}/score`, {
-        vote: vote || null, score: scoreVal ? Number(scoreVal) : null, comment: comment || null,
-      });
+      await api.put(`/tender/arizalar/${arizaId}/score`, { comment: comment || null, items: buildItems() });
       return (await api.post(`/tender/arizalar/${arizaId}/score/submit`)).data;
     },
     onSuccess: () => {
@@ -141,26 +146,25 @@ function ArizaScoreForm({ arizaId }: { arizaId: string }) {
 
       <div className="card p-6 space-y-5">
         <div>
-          <label className="label mb-2 block">{t("tender.vote")}</label>
-          <div className="grid grid-cols-3 gap-2">
-            {([
-              { v: "for", icon: ThumbsUp, cls: "text-risk-low-fg" },
-              { v: "abstain", icon: Minus, cls: "text-ink-muted" },
-              { v: "against", icon: ThumbsDown, cls: "text-risk-high-fg" },
-            ] as const).map(({ v, icon: Icon, cls }) => (
-              <button key={v} type="button" disabled={isSubmitted} onClick={() => setVote(v)}
-                className={`p-3 rounded-xl border-2 text-center text-[13px] font-medium transition flex flex-col items-center gap-1 ${
-                  vote === v ? "bg-accent-50 text-accent-700 border-accent" : "bg-surface border-ink/[0.08] hover:border-ink/20"
-                }`}>
-                <Icon size={16} className={vote === v ? "" : cls} /> {t(`tender.vote_${v}`)}
-              </button>
+          <label className="label mb-2 block">{t("tender.rubric_title")}</label>
+          <div className="divide-y divide-ink/[0.06] rounded-xl border border-ink/[0.08]">
+            {(score?.items || []).map((it) => (
+              <div key={it.criterion_key} className="flex items-center gap-3 px-4 py-3">
+                <span className="text-[13.5px] text-ink flex-1">{t(`tender.criterion_${it.criterion_key}`)}</span>
+                <input
+                  type="number" min={0} max={Number(it.max_points)} disabled={isSubmitted}
+                  className="input w-20 text-center" value={points[it.criterion_key] ?? ""}
+                  onChange={(e) => setPoints((prev) => ({ ...prev, [it.criterion_key]: e.target.value }))}
+                />
+                <span className="text-[12px] text-ink-subtle w-16 shrink-0">/ {it.max_points}</span>
+              </div>
             ))}
           </div>
-        </div>
-        <div>
-          <label className="label">{t("tender.score")}</label>
-          <input type="number" min={0} max={100} className="input" disabled={isSubmitted} value={scoreVal}
-            onChange={(e) => setScoreVal(e.target.value)} />
+          <div className="flex items-center justify-between px-1 pt-2">
+            <span className="text-[12.5px] text-ink-muted">{t("tender.total_score")}</span>
+            <span className={`text-[16px] font-serif ${total >= 70 ? "text-risk-low-fg" : "text-ink"}`}>{total} / 100</span>
+          </div>
+          {total >= 70 && <p className="text-[11.5px] text-risk-low-fg">{t("tender.recommend_hint")}</p>}
         </div>
         <div>
           <label className="label">{t("tender.comment")}</label>
@@ -172,7 +176,7 @@ function ArizaScoreForm({ arizaId }: { arizaId: string }) {
             <button onClick={() => saveDraft.mutate()} disabled={saveDraft.isPending} className="btn-secondary flex-1">
               <Save size={15} /> {saveDraft.isPending ? t("common.loading") : t("tender.save_draft")}
             </button>
-            <button onClick={() => submit.mutate()} disabled={submit.isPending || !vote} className="btn-primary flex-1">
+            <button onClick={() => submit.mutate()} disabled={submit.isPending || !allFilled} className="btn-primary flex-1">
               {submit.isPending ? t("common.loading") : t("tender.submit_score")}
             </button>
           </div>
