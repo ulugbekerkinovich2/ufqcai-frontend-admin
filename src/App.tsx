@@ -21,6 +21,10 @@ const Capacity       = lazy(() => import("./pages/Capacity").then((m) => ({ defa
 const ChangePassword = lazy(() => import("./pages/ChangePassword").then((m) => ({ default: m.ChangePassword })));
 const Triage         = lazy(() => import("./pages/Triage").then((m) => ({ default: m.Triage })));
 const ExpertReview   = lazy(() => import("./pages/ExpertReview").then((m) => ({ default: m.ExpertReview })));
+const Tanlov         = lazy(() => import("./pages/Tanlov").then((m) => ({ default: m.Tanlov })));
+const TanlovDetail   = lazy(() => import("./pages/TanlovDetail").then((m) => ({ default: m.TanlovDetail })));
+const TanlovScoring  = lazy(() => import("./pages/TanlovScoring").then((m) => ({ default: m.TanlovScoring })));
+const RejissorlikReview = lazy(() => import("./pages/RejissorlikReview").then((m) => ({ default: m.RejissorlikReview })));
 
 function PageLoader() {
   return (
@@ -53,6 +57,12 @@ export default function App() {
             <Route path="triage" element={<ProtectedRoute roles={["mutaxassis"]}><ErrorBoundary><Triage /></ErrorBoundary></ProtectedRoute>} />
             <Route path="expert-review" element={<ProtectedRoute roles={["ekspert"]}><ErrorBoundary><ExpertReview /></ErrorBoundary></ProtectedRoute>} />
             <Route path="expert-review/:docId" element={<ProtectedRoute roles={["ekspert"]}><ErrorBoundary><ExpertReview /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="tender" element={<ProtectedRoute roles={["mutaxassis", "komissiya"]}><ErrorBoundary><Tanlov /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="tender/:id" element={<ProtectedRoute roles={["mutaxassis", "komissiya"]}><ErrorBoundary><TanlovDetail /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="tender-scoring" element={<ProtectedRoute roles={["komissiya"]}><ErrorBoundary><TanlovScoring /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="tender-scoring/:tanlovId" element={<ProtectedRoute roles={["komissiya"]}><ErrorBoundary><TanlovScoring /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="tender-scoring/ariza/:arizaId" element={<ProtectedRoute roles={["komissiya"]}><ErrorBoundary><TanlovScoring /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="rejissorlik-review/:arizaId" element={<ProtectedRoute roles={["mutaxassis", "komissiya"]}><ErrorBoundary><RejissorlikReview /></ErrorBoundary></ProtectedRoute>} />
             <Route path="change-password" element={<ErrorBoundary><ChangePassword /></ErrorBoundary>} />
           </Route>
           <Route path="*" element={<Navigate to="/" />} />

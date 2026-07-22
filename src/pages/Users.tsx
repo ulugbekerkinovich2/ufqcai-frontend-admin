@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import { formatDate } from "@/lib/utils";
-import { Plus, X, ShieldCheck, User as UserIcon, Eye, Pencil, Check, Trash2, KeyRound, ClipboardCheck, UserSearch } from "lucide-react";
+import { Plus, X, ShieldCheck, User as UserIcon, Eye, Pencil, Check, Trash2, KeyRound, ClipboardCheck, UserSearch, Gavel } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { confirm } from "@/components/shared/ConfirmDialog";
@@ -31,24 +31,26 @@ const ROLE_PERMS: Record<string, string[]> = {
   admin: ["trigger_analysis", "upload_document", "edit_criteria", "upload_law", "delete_document"],
   mutaxassis: [],
   ekspert: [],
+  komissiya: [],
   viewer: [],
   user: [],
 };
 
 // Admin panelida YANGI hisob yaratishda tanlanadigan rollar — "user" bu yerda yo'q,
 // chunki u faqat ochiq ro'yxatdan o'tish orqali beriladi (self-service).
-const ASSIGNABLE_ROLES = ["viewer", "mutaxassis", "ekspert", "admin", "super_admin"] as const;
+const ASSIGNABLE_ROLES = ["viewer", "mutaxassis", "ekspert", "komissiya", "admin", "super_admin"] as const;
 
 // Mavjud hisobni TAHRIRLASHDA esa "user" ham ko'rsatiladi — aks holda self-register
 // qilgan hisobni ochganda joriy roli grid'da hech qayerda "active" ko'rinmay qoladi,
 // va admin uni "user" holicha qoldira olmaydi.
-const EDITABLE_ROLES = ["viewer", "user", "mutaxassis", "ekspert", "admin", "super_admin"] as const;
+const EDITABLE_ROLES = ["viewer", "user", "mutaxassis", "ekspert", "komissiya", "admin", "super_admin"] as const;
 
 const ROLE_META: Record<string, { icon: typeof ShieldCheck; labelKey: string; cls: string; activeCls: string }> = {
   super_admin: { icon: ShieldCheck, labelKey: "users.role_super", cls: "bg-accent-50 text-accent-700", activeCls: "bg-accent-50 text-accent-700 border-accent" },
   admin: { icon: UserIcon, labelKey: "users.role_admin", cls: "bg-risk-medium-bg text-risk-medium-fg", activeCls: "bg-risk-medium-bg text-risk-medium-fg border-risk-medium-dot" },
   mutaxassis: { icon: UserSearch, labelKey: "users.role_mutaxassis", cls: "bg-risk-low-bg text-risk-low-fg", activeCls: "bg-risk-low-bg text-risk-low-fg border-risk-low-dot" },
   ekspert: { icon: ClipboardCheck, labelKey: "users.role_ekspert", cls: "bg-accent-50 text-accent-700", activeCls: "bg-accent-50 text-accent-700 border-accent" },
+  komissiya: { icon: Gavel, labelKey: "users.role_komissiya", cls: "bg-risk-medium-bg text-risk-medium-fg", activeCls: "bg-risk-medium-bg text-risk-medium-fg border-risk-medium-dot" },
   viewer: { icon: Eye, labelKey: "users.role_viewer", cls: "bg-surface-sunken text-ink-muted", activeCls: "bg-surface-sunken text-ink border-ink/30" },
   user: { icon: Eye, labelKey: "users.role_user", cls: "bg-surface-sunken text-ink-muted", activeCls: "bg-surface-sunken text-ink border-ink/30" },
 };

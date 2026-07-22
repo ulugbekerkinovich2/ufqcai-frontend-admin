@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/store/auth";
 import {
   LogOut, FileText, ListChecks, BookOpen, Users, LayoutDashboard, ScrollText,
-  KeyRound, DollarSign, SlidersHorizontal, Menu, X, Activity, ClipboardCheck, UserSearch,
+  KeyRound, DollarSign, SlidersHorizontal, Menu, X, Activity, ClipboardCheck, UserSearch, Gavel,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
@@ -27,6 +27,7 @@ export function Layout() {
   const hasPerm = (key: string) => isSuper || (user?.permissions ?? []).includes(key);
   const isMutaxassis = isAdmin || user?.role === "mutaxassis";
   const isEkspert = isAdmin || user?.role === "ekspert";
+  const isKomissiya = isAdmin || user?.role === "komissiya";
   const initials = (user?.full_name || "?").split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
 
   // Close mobile sidebar on navigation
@@ -45,6 +46,8 @@ export function Layout() {
     { to: "/laws", label: t("nav.laws"), icon: BookOpen, visible: true },
     { to: "/triage", label: t("nav.triage"), icon: UserSearch, visible: isMutaxassis },
     { to: "/expert-review", label: t("nav.expert_review"), icon: ClipboardCheck, visible: isEkspert },
+    { to: "/tender", label: t("nav.tender"), icon: Gavel, visible: isMutaxassis || isKomissiya },
+    { to: "/tender-scoring", label: t("nav.tender_scoring"), icon: Gavel, visible: isKomissiya },
     { to: "/users", label: t("nav.users"), icon: Users, visible: hasPerm("manage_users") },
     { to: "/usage", label: t("nav.usage"), icon: DollarSign, visible: hasPerm("view_usage") },
     { to: "/audit", label: t("nav.audit"), icon: ScrollText, visible: hasPerm("view_audit") },

@@ -103,3 +103,78 @@ export interface Analysis {
   results?: AnalysisResult[];
   flagged?: FlaggedSegment[];
 }
+
+export type TanlovStatus = "draft" | "announced" | "intake_closed" | "completed" | "cancelled";
+
+export interface Tanlov {
+  id: string;
+  title: string;
+  description?: string;
+  film_type?: string;
+  status: TanlovStatus;
+  application_deadline?: string;
+  announced_at?: string;
+  created_by?: string;
+  created_at: string;
+}
+
+export type ArizaStatus =
+  | "draft" | "submitted" | "registered" | "reg_rejected" | "scoring"
+  | "winner" | "reserve" | "rejected" | "contracted";
+
+export interface Ariza {
+  id: string;
+  tanlov_id: string;
+  applicant_id: string;
+  organization_name?: string;
+  status: ArizaStatus;
+  own_funding_amount?: number | string;
+  requested_grant_amount?: number | string;
+  total_budget?: number | string;
+  literary_screenplay_document_id?: string;
+  registration_note?: string;
+  submitted_at?: string;
+  registered_at?: string;
+  decided_at?: string;
+  created_at: string;
+}
+
+export type ArizaAttachmentKind = "annotation" | "budget_calc" | "calendar_plan" | "sketches" | "presentation" | "other";
+
+export interface ArizaAttachment {
+  id: string;
+  ariza_id: string;
+  kind: ArizaAttachmentKind;
+  file_type: string;
+  file_size: number;
+  original_name: string;
+  uploaded_at: string;
+}
+
+export interface ArizaScore {
+  id: string;
+  ariza_id: string;
+  member_id: string;
+  vote?: "for" | "against" | "abstain";
+  score?: number | string;
+  comment?: string;
+  status: "draft" | "submitted";
+  submitted_at?: string;
+}
+
+export type RejissorlikSmetaStatus =
+  | "pending_ishchi_guruh" | "ishchi_guruh_rejected" | "pending_komissiya" | "approved" | "rejected";
+
+export interface RejissorlikSmeta {
+  id: string;
+  ariza_id: string;
+  director_screenplay_document_id?: string;
+  total_cost?: number | string;
+  status: RejissorlikSmetaStatus;
+  ishchi_guruh_reviewer_id?: string;
+  ishchi_guruh_note?: string;
+  ishchi_guruh_decided_at?: string;
+  komissiya_approved_by?: string;
+  komissiya_decided_at?: string;
+  submitted_at?: string;
+}
