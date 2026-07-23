@@ -115,8 +115,8 @@ export function Dashboard() {
             <AreaChart data={trend} margin={{ top: 10, right: 8, left: -16, bottom: 0 }}>
               <defs>
                 <linearGradient id="gAccent" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#0F766E" stopOpacity={0.18} />
-                  <stop offset="100%" stopColor="#0F766E" stopOpacity={0} />
+                  <stop offset="0%" stopColor="#1E4D8C" stopOpacity={0.18} />
+                  <stop offset="100%" stopColor="#1E4D8C" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid stroke="#EEEEEA" vertical={false} />
@@ -125,7 +125,7 @@ export function Dashboard() {
               <Tooltip
                 contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 8px 24px rgba(16,24,40,0.12)", fontSize: 13 }}
               />
-              <Area type="monotone" dataKey="count" stroke="#0F766E" strokeWidth={2} fill="url(#gAccent)" />
+              <Area type="monotone" dataKey="count" stroke="#1E4D8C" strokeWidth={2} fill="url(#gAccent)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>

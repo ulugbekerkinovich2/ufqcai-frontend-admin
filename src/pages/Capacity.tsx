@@ -253,15 +253,15 @@ export function Capacity() {
                 <AreaChart data={histData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
                   <defs>
                     <linearGradient id="gA" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0F766E" stopOpacity={0.22} />
-                      <stop offset="95%" stopColor="#0F766E" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#1E4D8C" stopOpacity={0.22} />
+                      <stop offset="95%" stopColor="#1E4D8C" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#EEEEEA" />
                   <XAxis dataKey="label" tick={{ fontSize: 10 }} stroke="#9CA3AF" />
                   <YAxis tick={{ fontSize: 10 }} stroke="#9CA3AF" />
                   <Tooltip />
-                  <Area type="monotone" dataKey="analyses" stroke="#0F766E" fill="url(#gA)" strokeWidth={2} name="Analyses" />
+                  <Area type="monotone" dataKey="analyses" stroke="#1E4D8C" fill="url(#gA)" strokeWidth={2} name="Analyses" />
                   <Area type="monotone" dataKey="errors" stroke="#C2410C" fill="none" strokeWidth={1.5} strokeDasharray="4 2" name="Errors" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -274,7 +274,7 @@ export function Capacity() {
                   <XAxis dataKey="label" tick={{ fontSize: 10 }} stroke="#9CA3AF" />
                   <YAxis tick={{ fontSize: 10 }} stroke="#9CA3AF" />
                   <Tooltip />
-                  <Bar dataKey="tokens" fill="#0F766E" radius={[3, 3, 0, 0]} name="Tokens" />
+                  <Bar dataKey="tokens" fill="#1E4D8C" radius={[3, 3, 0, 0]} name="Tokens" />
                 </BarChart>
               </ResponsiveContainer>
             </div>

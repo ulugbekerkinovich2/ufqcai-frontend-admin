@@ -71,8 +71,8 @@ export function Usage() {
             <AreaChart data={daily} margin={{ top: 10, right: 8, left: -8, bottom: 0 }}>
               <defs>
                 <linearGradient id="gUsage" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#0F766E" stopOpacity={0.22} />
-                  <stop offset="100%" stopColor="#0F766E" stopOpacity={0} />
+                  <stop offset="0%" stopColor="#1E4D8C" stopOpacity={0.22} />
+                  <stop offset="100%" stopColor="#1E4D8C" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid stroke="#EEEEEA" vertical={false} />
@@ -84,7 +84,7 @@ export function Usage() {
                 contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 8px 24px rgba(16,24,40,0.12)", fontSize: 13 }}
                 formatter={(v: any, k) => k === "cost_usd" ? [`$${Number(v).toFixed(4)}`, "Xarajat"] : [v, k]}
               />
-              <Area type="monotone" dataKey="cost_usd" stroke="#0F766E" strokeWidth={2} fill="url(#gUsage)" />
+              <Area type="monotone" dataKey="cost_usd" stroke="#1E4D8C" strokeWidth={2} fill="url(#gUsage)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -138,7 +138,7 @@ export function Usage() {
                   formatter={(v: any, k) => k === "cost_usd" ? [`$${Number(v).toFixed(4)}`, "Xarajat"] : [v, k]}
                 />
                 <Bar dataKey="cost_usd" radius={[0, 6, 6, 0]}>
-                  {users.slice(0, 10).map((_, i) => <Cell key={i} fill="#0F766E" />)}
+                  {users.slice(0, 10).map((_, i) => <Cell key={i} fill="#1E4D8C" />)}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>

@@ -1,6 +1,6 @@
 /**
  * Senariy Analizer — vizual identifikatsiya.
- * Davlat tashkilotiga mos, minimal, deep teal aksent bilan.
+ * Davlat tashkilotiga mos, minimal, rasmiy to'q ko'k aksent bilan.
  */
 export function LogoMark({ size = 36 }: { size?: number }) {
   return (
@@ -12,12 +12,12 @@ export function LogoMark({ size = 36 }: { size?: number }) {
       xmlns="http://www.w3.org/2000/svg"
       aria-label="Ssenariy Tahlil"
     >
-      <rect width="40" height="40" rx="10" fill="#0F766E" />
+      <rect width="40" height="40" rx="6" fill="#1E4D8C" />
       {/* Sahifa qatlamlari — ssenariy ma'nosi */}
-      <rect x="11" y="8" width="18" height="22" rx="2.5" fill="#FAFAF8" />
-      <rect x="13" y="11" width="14" height="22" rx="2.5" fill="#0F766E" fillOpacity="0.18" stroke="#FAFAF8" strokeWidth="1.5" />
+      <rect x="11" y="8" width="18" height="22" rx="2" fill="#F5F7FA" />
+      <rect x="13" y="11" width="14" height="22" rx="2" fill="#1E4D8C" fillOpacity="0.18" stroke="#F5F7FA" strokeWidth="1.5" />
       {/* AI tahlil belgisi — uchburchak (play/analyze) */}
-      <path d="M18 17 L26 21 L18 25 Z" fill="#0F766E" />
+      <path d="M18 17 L26 21 L18 25 Z" fill="#1E4D8C" />
     </svg>
   );
 }

@@ -343,7 +343,7 @@ export function AnalysisResult() {
               <div className="flex flex-wrap gap-2.5">
                 {genres.map((g, i) => {
                   const palettes = [
-                    { bg: "#F0FDFA", fg: "#0F766E", border: "#99F6E4" },
+                    { bg: "#EEF3FA", fg: "#1E4D8C", border: "#B0C7E8" },
                     { bg: "#FFF7ED", fg: "#C2410C", border: "#FED7AA" },
                     { bg: "#F0F9FF", fg: "#0369A1", border: "#BAE6FD" },
                     { bg: "#FDF4FF", fg: "#7E22CE", border: "#E9D5FF" },
