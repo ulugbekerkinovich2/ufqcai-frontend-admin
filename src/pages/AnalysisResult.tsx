@@ -267,7 +267,7 @@ export function AnalysisResult() {
             </div>
             <div className="mt-4 pt-4 border-t border-ink/[0.06]">
               <p className="text-[12px] text-ink-muted italic leading-relaxed">
-                Vazirlar Mahkamasining 2019 yil 19 avgustdagi 695-sonli qarori tegishli topshiriqlari bajarilgan holda.
+                Ushbu tahlil sun'iy intellekt yordamida tayyorlangan tavsiya xarakteridagi xulosa — yakuniy baho vakolatli ekspert tomonidan beriladi.
               </p>
             </div>
           </div>
