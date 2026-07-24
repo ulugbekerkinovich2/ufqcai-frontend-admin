@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
+import { Download } from "lucide-react";
 import { api } from "@/api/client";
 import { formatDate } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
+import { toast } from "@/lib/toast";
 
 interface Row {
   id: number; user_id?: string; action: string; entity: string;
@@ -32,12 +34,31 @@ export function Audit() {
     queryFn: async () => (await api.get<Row[]>("/audit")).data,
   });
 
+  async function exportCsv() {
+    try {
+      const res = await api.get("/audit/export.csv", { responseType: "blob" });
+      const url = URL.createObjectURL(res.data);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "audit-log.csv";
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error(t("common.error"));
+    }
+  }
+
   return (
     <div className="space-y-7 animate-fade-in">
-      <header>
-        <p className="text-[12.5px] uppercase tracking-[0.14em] text-ink-muted mb-2">{t("audit.section")}</p>
-        <h1 className="font-serif text-[26px] leading-tight">{t("audit.title")}</h1>
-        <p className="text-[13.5px] text-ink-muted mt-2">{t("audit.hint")}</p>
+      <header className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[12.5px] uppercase tracking-[0.14em] text-ink-muted mb-2">{t("audit.section")}</p>
+          <h1 className="font-serif text-[26px] leading-tight">{t("audit.title")}</h1>
+          <p className="text-[13.5px] text-ink-muted mt-2">{t("audit.hint")}</p>
+        </div>
+        <button onClick={exportCsv} className="btn-secondary h-9 shrink-0">
+          <Download size={15} strokeWidth={1.75} /> {t("audit.export")}
+        </button>
       </header>
 
       <div className="card overflow-hidden">

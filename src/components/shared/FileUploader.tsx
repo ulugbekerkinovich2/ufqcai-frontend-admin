@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type KeyboardEvent } from "react";
 import { UploadCloud } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
@@ -25,8 +25,14 @@ export function FileUploader({ accept = ".doc,.docx,.pdf", onFile, loading }: Pr
       onDragLeave={() => setDrag(false)}
       onDrop={(e) => { e.preventDefault(); setDrag(false); handleFiles(e.dataTransfer.files); }}
       onClick={() => ref.current?.click()}
+      onKeyDown={(e: KeyboardEvent) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); ref.current?.click(); }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={t("documents.upload_hint")}
       className={cn(
-        "group relative bg-surface-raised rounded-2xl px-8 py-12 text-center cursor-pointer transition shadow-card",
+        "group relative bg-surface-raised rounded-2xl px-8 py-12 text-center cursor-pointer transition shadow-card focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40",
         drag ? "ring-2 ring-accent/40 bg-accent-50/40" : "hover:shadow-raised",
         loading && "opacity-60 pointer-events-none",
       )}

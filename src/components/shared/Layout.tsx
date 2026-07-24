@@ -187,6 +187,15 @@ export function Layout() {
             <Outlet />
           </div>
         </main>
+
+        <footer className="border-t border-ink/[0.05] px-4 sm:px-6 lg:px-10 py-4 text-center sm:text-left">
+          <div className="max-w-[1280px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-1.5">
+            <p className="text-[11px] text-ink-subtle">{t("app.copyright")}</p>
+            <p className="text-[11px] text-ink-subtle">
+              {t("app.footer_support")} <a href="mailto:admin@ufqcai.uz" className="text-accent hover:underline">admin@ufqcai.uz</a>
+            </p>
+          </div>
+        </footer>
       </div>
     </div>
   );
